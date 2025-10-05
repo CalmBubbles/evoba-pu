@@ -1,0 +1,44 @@
+{
+    "name": "Scene",
+    "resources": [
+        "ball"
+    ],
+    "gameObjects": [
+        {
+            "name": "camera",
+            "id": 0,
+            "components": [
+                {
+                    "type": "Camera",
+                    "args": {
+                        "backgroundColor": {
+                            "r": 40,
+                            "g": 0,
+                            "b": 85
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "ball",
+            "id": 1,
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "ball"
+                        }
+                    }
+                },
+                {
+                    "type": "Example",
+                    "args": {
+                        "text": "HIIIII! :D"
+                    }
+                }
+            ]
+        }
+    ]
+}

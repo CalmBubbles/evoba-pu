@@ -1,0 +1,10 @@
+[
+    {
+        "path": "ball",
+        "type": "Texture",
+        "args": {
+            "src": "ball.png",
+            "pixelPerUnit": 30
+        }
+    }
+]
