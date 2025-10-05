@@ -1,18 +1,15 @@
 {
-    "name": "Project/Game Name",
-    "developer": "Developer Name or Something",
+    "name": "evoba pu",
+    "developer": "CalmBubbles",
     "version": "2025.1a",
     "window": {
-        "title": "Window Title",
-        "width": 750,
-        "height": 500,
-        "windowWidth": null,
-        "windowHeight": null,
-        "marginWidth": null,
-        "marginHeight": null,
-        "resizable": true,
-        "fullscreen": false,
-        "fillWindow": true,
+        "title": "evoba pu",
+        "width": 170,
+        "height": 100,
+        "windowWidth": 680,
+        "windowHeight": 400,
+        "resizable": false,
+        "fillWindow": false,
         "icon": "icon/icon.png"
     }
 }

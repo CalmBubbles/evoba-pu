@@ -2,21 +2,12 @@
     "name" : "Assembly-JavaScript",
     "description" : "The assembly module where all of the build scripts are located",
     "scripts" : [
-        "Example"
-    ],
-    "preserve": [
-        "idk.txt"
+        "CharCtrl"
     ],
     "classes" : [
         {
-            "name": "Example",
-            "type": 0,
-            "args": [
-                {
-                    "name": "text",
-                    "type": "string"
-                }
-            ]
+            "name": "CharCtrl",
+            "type": 0
         }
     ]
 }

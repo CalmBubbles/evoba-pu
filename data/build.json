@@ -1,13 +1,17 @@
 {
     "libs": [
+        "Crystal.RPGTiles",
         "Assembly-JavaScript"
     ],
-    "scripts": [],
+    "scripts": [
+        "plugins/Crispixels",
+        "plugins/FPSMeter"
+    ],
     "resources": [
         "main"
     ],
     "scenes": [
-        "scene"
+        "game"
     ],
     "shaders": [
         "invertColor"
@@ -21,7 +25,7 @@
         "timeScale": 1,
         "fixedDeltaTime": 0.02
     },
-    "noFixedUpdate": false,
+    "noFixedUpdate": true,
     "partioningMaxDepth": 8,
     "input": {
         "gamepad": {
