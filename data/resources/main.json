@@ -6,30 +6,5 @@
             "src": "pu.png",
             "pixelPerUnit": 10
         }
-    },
-    {
-        "path": "blocks",
-        "type": "Texture",
-        "args": {
-            "src": "blocks.png",
-            "sprites": [
-                {
-                    "name": "dirt",
-                    "rect": {
-                        "width": 10,
-                        "height": 10
-                    }
-                },
-                {
-                    "name": "stone",
-                    "rect": {
-                        "x": 10,
-                        "width": 10,
-                        "height": 10
-                    }
-                }
-            ],
-            "pixelPerUnit": 10
-        }
     }
 ]

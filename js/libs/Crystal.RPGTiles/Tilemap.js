@@ -443,15 +443,7 @@ class Tilemap extends Renderer
 
         this.#tiles.push(tile);
 
-        let palette = TilePalette.Find(tile.palette);
-
-        if (palette == null)
-        {
-            await TilePalette.Load(tile.palette);
-            palette = TilePalette.Find(tile.palette);
-        }
-
-        tile.sprite = palette.sprites.find(item => item.id === tile.spriteID).sprite;
+        tile.sprite = TileBank.GetTileInfo(tile.spriteID).texture.sprites[0].Duplicate();
 
         let renderSet = this.#rendersets.find(item => item.texture === tile.sprite.texture);
         const makeSet = renderSet == null;

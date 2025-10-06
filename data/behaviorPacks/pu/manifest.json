@@ -1,0 +1,10 @@
+{
+    "name": "Default",
+    "description": "The default behaviors of evoba pu.",
+    "format_version": "1",
+    "uuid": "37a42171-9711-425a-895e-18a4d72f3c45",
+    "version": "2025.1a",
+    "min_game_ver": "2025.1a",
+    "type": 0,
+    "developer": "CalmBubbles"
+}

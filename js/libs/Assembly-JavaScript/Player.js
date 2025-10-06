@@ -1,10 +1,10 @@
-class CharCtrl extends GameBehavior
+class Player extends GameBehavior
 {
     #delay = 0.2;
     #timer = 0;
     #xTime = 0;
     #yTime = 0;
-    #pos = Vector2.zero;
+    #pos = new Vector2(0, 2);
 
     #grid = null;
 
@@ -14,7 +14,7 @@ class CharCtrl extends GameBehavior
         FPSMeter.enabled = true;
         FPSMeter.detailed = true;
 
-        this.#grid = GameObject.FindComponents("Grid")[0];
+        this.#grid = GameObject.Find("grid").GetComponent("Grid");
 
         this.transform.position = this.#grid.CellToWorld(this.#pos);
         this.#timer = this.#delay;

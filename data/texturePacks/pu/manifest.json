@@ -1,0 +1,10 @@
+{
+    "name": "Default",
+    "description": "The default textures of evoba pu.",
+    "format_version": "1",
+    "uuid": "73c558da-970a-492d-9fb0-84c50ea9236e",
+    "version": "2025.1a",
+    "min_game_ver": "2025.1a",
+    "type": 1,
+    "developer": "CalmBubbles"
+}

@@ -2,11 +2,15 @@
     "name" : "Assembly-JavaScript",
     "description" : "The assembly module where all of the build scripts are located",
     "scripts" : [
-        "CharCtrl"
+        "Player",
+        "PackLoader",
+        "WorldBase/TileBank",
+        "WorldBase/Chunk",
+        "WorldBase/ChunkLoader"
     ],
     "classes" : [
         {
-            "name": "CharCtrl",
+            "name": "Player",
             "type": 0
         }
     ]
