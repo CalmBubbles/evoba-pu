@@ -4,13 +4,19 @@
     "scripts" : [
         "Player",
         "PackLoader",
-        "WorldBase/TileBank",
-        "WorldBase/Chunk",
-        "WorldBase/ChunkLoader"
+        "World/TileBank",
+        "World/Chunk",
+        "World/ChunkLoader",
+        "World/TerrainBuilder",
+        "Cam"
     ],
     "classes" : [
         {
             "name": "Player",
+            "type": 0
+        },
+        {
+            "name": "Cam",
             "type": 0
         }
     ]

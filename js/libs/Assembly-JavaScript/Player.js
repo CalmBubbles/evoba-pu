@@ -18,10 +18,18 @@ class Player extends GameBehavior
 
         this.transform.position = this.#grid.CellToWorld(this.#pos);
         this.#timer = this.#delay;
+
+        TerrainBuilder.Generate();
     }
 
     Update ()
     {
+        this.transform.position = Vector2.Lerp(
+            this.transform.position,
+            this.#grid.CellToWorld(this.#pos),
+            20 * Time.deltaTime
+        );
+
         const input = new Vector2(
             +Input.GetKey(KeyCode.ArrowRight) - +Input.GetKey(KeyCode.ArrowLeft),
             +Input.GetKey(KeyCode.ArrowUp) - +Input.GetKey(KeyCode.ArrowDown)
@@ -49,7 +57,6 @@ class Player extends GameBehavior
         if (Vector2.zero.Equals(input)) return;
 
         this.#pos = Vector2.Add(this.#pos, input);
-        this.transform.position = this.#grid.CellToWorld(this.#pos);
 
         this.#timer = this.#delay;
     }

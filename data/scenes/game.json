@@ -18,6 +18,9 @@
                             "b": 0
                         }
                     }
+                },
+                {
+                    "type": "Cam"
                 }
             ]
         },
@@ -42,7 +45,7 @@
             ]
         },
         {
-            "name": "pu",
+            "name": "player",
             "id": 2,
             "components": [
                 {

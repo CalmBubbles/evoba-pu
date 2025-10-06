@@ -4,8 +4,8 @@
     "version": "2025.1a",
     "window": {
         "title": "evoba pu",
-        "width": 170,
-        "height": 100,
+        "width": 340,
+        "height": 200,
         "windowWidth": 680,
         "windowHeight": 400,
         "resizable": false,
