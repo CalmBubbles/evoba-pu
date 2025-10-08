@@ -5,7 +5,8 @@
     ],
     "scripts": [
         "plugins/Crispixels",
-        "plugins/FPSMeter"
+        "plugins/FPSMeter",
+        "plugins/noisejs/perlin"
     ],
     "resources": [
         "main"

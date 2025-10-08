@@ -29,20 +29,21 @@ class TerrainBuilder
         this.#passes = this.#passes.filter(item => item.pack !== packUUID);
     }
 
-    static Generate ()
+    static Generate (pos)
     {
         const chunk = new Chunk();
+        chunk.pos = pos;
 
-        let x = -8;
-        let y = 9;
+        let x = -8 + pos.x * 17;
+        let y = 9 + pos.y * 10;
         
-        for (let i = 0; i < chunk.data.length; i++)
+        for (let i = 0; i < 170; i++)
         {
             chunk.data[i] = this.#Pass(new Vector2(x, y));
 
             if ((1 + i) % 17 === 0)
             {
-                x = -9;
+                x = -9 + chunk.pos.x * 17;
                 y--;
             }
 
@@ -50,5 +51,7 @@ class TerrainBuilder
         }
 
         ChunkLoader.Load(chunk);
+
+        return chunk;
     }
 }

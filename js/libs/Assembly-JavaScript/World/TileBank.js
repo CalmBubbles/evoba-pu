@@ -22,8 +22,8 @@ class TileBank
             behavior: [
                 {
                     pack: packUUID,
-                    hardness: data.hardness ?? 0,
-                    blast_resistance: data.blast_resistance ?? 0,
+                    hardness: data.hardness,
+                    blast_resistance: data.blast_resistance,
                 }
             ],
             texture: []
@@ -49,8 +49,8 @@ class TileBank
 
         let output = {
             id: tile.id,
-            hardness: 0,
-            blast_resistance: 0,
+            hardness: 1,
+            blast_resistance: 1,
             texture: tile.texture[tile.texture.length - 1].texture
         };
 

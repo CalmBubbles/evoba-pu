@@ -1,5 +1,7 @@
 class ChunkLoader
 {
+    static #chunks = [];
+
     static Load (chunk)
     {
         let objID = 0;
@@ -7,6 +9,7 @@ class ChunkLoader
         while (GameObject.FindByID(objID) != null) objID++;
 
         const tilemap = new Tilemap();
+        tilemap.grid = World.grid;
 
         let x = -8 + chunk.pos.x * 17;
         let y = 9 + chunk.pos.y * 10;
@@ -18,10 +21,21 @@ class ChunkLoader
                 new Vector2(x, y)
             ));
 
+            const newNode = new ChunkNode();
+            newNode.x = x;
+            newNode.y = y;
+            newNode.chunk = chunk;
+            
+            if (chunk.data[i] !== "pu:air") newNode.owner = TileBank.GetTileInfo(chunk.data[i]);
+
+            chunk.nodes.push(newNode);
+
             if ((1 + i) % 17 === 0)
             {
-                x = -9 + chunk.pos.x * 17;
+                x = -8 + chunk.pos.x * 17;
                 y--;
+
+                continue;
             }
 
             x++;
@@ -36,6 +50,10 @@ class ChunkLoader
             transform,
             objID
         );
+        
+        chunk.tilemap = tilemap;
+        chunk.gameObject = gameObj;
+        this.#chunks.push(chunk);
 
         const scene = SceneManager.GetActiveScene();
         gameObj.scene = scene;
@@ -49,7 +67,35 @@ class ChunkLoader
 
             scene.gameObjects.push(gameObj);
 
-            GameObject.Find("grid").transform.AttachChild(transform);
+            World.grid.transform.AttachChild(transform);
         });
+    }
+
+    static WorldToChunkPos (pos)
+    {
+        return new Vector2(
+            Math.floor(Math.round(pos.x + 8) / 17),
+            Math.floor(Math.round(pos.y) / 10)
+        );
+    }
+
+    static GetByPos (pos)
+    {
+        return this.#chunks.find(item => item.pos.Equals(pos));
+    }
+
+    static GetNodeByPos (pos)
+    {
+        return this.GetByPos(this.WorldToChunkPos(pos))?.NodeOn(pos);
+    }
+
+    static Unload (chunk)
+    {
+        chunk.nodes = [];
+
+        GameObject.Destroy(chunk.gameObject);
+        chunk.gameObj = null;
+
+        this.#chunks.splice(this.#chunks.indexOf(chunk), 1);
     }
 }

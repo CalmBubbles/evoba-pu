@@ -7,7 +7,9 @@
         "World/TileBank",
         "World/Chunk",
         "World/ChunkLoader",
+        "World/ChunkNode",
         "World/TerrainBuilder",
+        "World/World",
         "Cam"
     ],
     "classes" : [
@@ -17,6 +19,10 @@
         },
         {
             "name": "Cam",
+            "type": 0
+        },
+        {
+            "name": "World",
             "type": 0
         }
     ]

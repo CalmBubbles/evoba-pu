@@ -1,32 +1,41 @@
 class Player extends GameBehavior
 {
+    static blockCount = 0;
+
+    static instance = null;
+
     #delay = 0.2;
     #timer = 0;
     #xTime = 0;
     #yTime = 0;
     #pos = new Vector2(0, 2);
 
-    #grid = null;
-
     Start ()
     {
-        Crispixels.effect = true;
-        FPSMeter.enabled = true;
-        FPSMeter.detailed = true;
+        Player.instance = this;
 
-        this.#grid = GameObject.Find("grid").GetComponent("Grid");
-
-        this.transform.position = this.#grid.CellToWorld(this.#pos);
+        this.transform.position = World.grid.CellToWorld(this.#pos);
         this.#timer = this.#delay;
-
-        TerrainBuilder.Generate();
     }
 
     Update ()
     {
+        if (!World.loadedChunk) return;
+
+        if (Math.abs(this.transform.position.x - this.#pos.x) < 0.1)
+        {
+            const groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.#pos, Vector2.down));
+
+            if (groundNode != null && groundNode.owner == null)
+            {
+                this.#pos.y -= 0.5;
+                this.#timer += Time.deltaTime;
+            }
+        }
+
         this.transform.position = Vector2.Lerp(
             this.transform.position,
-            this.#grid.CellToWorld(this.#pos),
+            World.grid.CellToWorld(this.#pos),
             20 * Time.deltaTime
         );
 
@@ -56,13 +65,26 @@ class Player extends GameBehavior
 
         if (Vector2.zero.Equals(input)) return;
 
-        this.#pos = Vector2.Add(this.#pos, input);
+        const targetPos = Vector2.Add(this.#pos, input);
+        const nextNode = ChunkLoader.GetNodeByPos(targetPos);
 
+        if (nextNode == null) return;
+        if (nextNode.owner != null)
+        {
+            if (nextNode.owner.hardness - 1 > 0) return;
+
+            Player.blockCount++;
+            nextNode.RemoveTile();
+        }
+
+        if (input.y > 0 && Player.blockCount === 0) return;
+        else if (input.y > 0 && Player.blockCount > 0)
+        {
+            Player.blockCount--;
+            ChunkLoader.GetNodeByPos(this.#pos).SetTile("pu:dirt");
+        }
+
+        this.#pos = targetPos;
         this.#timer = this.#delay;
-    }
-
-    LateUpdate ()
-    {
-        FPSMeter.Update();
     }
 }

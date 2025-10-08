@@ -1,5 +1,5 @@
 {
     "id": "pu:stone",
-    "hardness": 1,
-    "blast_resistance": 1
+    "hardness": 2,
+    "blast_resistance": 2
 }
