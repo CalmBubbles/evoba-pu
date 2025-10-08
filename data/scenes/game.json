@@ -1,7 +1,8 @@
 {
     "name": "Scene",
     "resources": [
-        "pu"
+        "pu",
+        "font"
     ],
     "gameObjects": [
         {
