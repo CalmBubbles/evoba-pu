@@ -21,7 +21,7 @@ class PackLoader
 
         for (let i = 0; i < textures.length; i++)
         {
-            if (textures[i].enabled) await this.Texture(`data\\texturePacks\\${textures[i].path}`);
+            if (textures[i].enabled) await this.Resource(`data\\resourcePacks\\${textures[i].path}`);
         }
 
         this.#loaded = true;
@@ -80,7 +80,7 @@ class PackLoader
         this.#behaviors.push(manifestData);
     }
 
-    static async Texture (src)
+    static async Resource (src)
     {
         const manifestRequest = await FetchFile(`${src}\\manifest.json`);
         const manifestData = await manifestRequest.json();

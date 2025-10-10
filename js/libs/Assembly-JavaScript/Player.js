@@ -1,6 +1,10 @@
 class Player extends GameBehavior
 {
+    static hp = 10;
+    static maxHp = 10;
     static blockCount = 0;
+    static strength = 2;
+    static speed = 1;
 
     static instance = null;
 
@@ -15,14 +19,14 @@ class Player extends GameBehavior
         Player.instance = this;
 
         this.transform.position = World.grid.CellToWorld(this.#pos);
-        this.#timer = this.#delay;
+        this.#timer = this.#delay / Player.speed;
     }
 
     Update ()
     {
         if (!World.loadedChunk) return;
 
-        if (Math.abs(this.transform.position.x - this.#pos.x) < 0.1)
+        if (Math.abs(this.transform.position.x - this.#pos.x) < 0.1 * Player.speed)
         {
             const groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.#pos, Vector2.down));
 
@@ -68,23 +72,25 @@ class Player extends GameBehavior
         const targetPos = Vector2.Add(this.#pos, input);
         const nextNode = ChunkLoader.GetNodeByPos(targetPos);
 
-        if (nextNode == null) return;
+        if (nextNode == null || (input.y > 0 && Player.blockCount === 0)) return;
+
         if (nextNode.owner != null)
         {
-            if (nextNode.owner.hardness - 1 > 0) return;
+            if (nextNode.owner.hardness - Player.strength > 0) return;
 
             Player.blockCount++;
             nextNode.RemoveTile();
         }
 
-        if (input.y > 0 && Player.blockCount === 0) return;
-        else if (input.y > 0 && Player.blockCount > 0)
+        if (input.y > 0 && Player.blockCount > 0)
         {
             Player.blockCount--;
             ChunkLoader.GetNodeByPos(this.#pos).SetTile("pu:dirt");
         }
 
+        Window.SetTitle(Player.blockCount);
+
         this.#pos = targetPos;
-        this.#timer = this.#delay;
+        this.#timer = this.#delay / Player.speed;
     }
 }

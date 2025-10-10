@@ -8,7 +8,5 @@ class FontGlyph
     {
         this.character = character ?? "";
         this.rect = rect ?? new Rect();
-
-        console.log(this);
     }
 }
