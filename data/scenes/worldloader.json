@@ -1,0 +1,28 @@
+{
+    "name": "World Loader",
+    "resources": [
+        "font"
+    ],
+    "gameObjects": [
+        {
+            "name": "camera",
+            "id": 0,
+            "components": [
+                {
+                    "type": "Camera",
+                    "args": {
+                        "orthographicSize": 10,
+                        "backgroundColor": {
+                            "r": 0,
+                            "g": 0,
+                            "b": 0
+                        }
+                    }
+                },
+                {
+                    "type": "WorldLoader"
+                }
+            ]
+        }
+    ]
+}

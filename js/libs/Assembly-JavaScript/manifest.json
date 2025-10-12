@@ -10,6 +10,7 @@
         "World/ChunkNode",
         "World/TerrainBuilder",
         "World/World",
+        "World/WorldLoader",
         "Cam"
     ],
     "classes" : [
@@ -23,6 +24,10 @@
         },
         {
             "name": "World",
+            "type": 0
+        },
+        {
+            "name": "WorldLoader",
             "type": 0
         }
     ]

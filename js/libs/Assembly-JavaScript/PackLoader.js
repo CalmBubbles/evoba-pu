@@ -8,20 +8,20 @@ class PackLoader
     {
         if (this.#loaded) return;
 
-        const behaviorsRequest = await FetchFile("data\\behaviorPacks\\manifest.json");
+        const behaviorsRequest = await FetchFile("data\\behavior_packs\\manifest.json");
         const behaviors = await behaviorsRequest.json();
 
         for (let i = 0; i < behaviors.length; i++)
         {
-            if (behaviors[i].enabled) await this.Behavior(`data\\behaviorPacks\\${behaviors[i].path}`);
+            if (behaviors[i].enabled) await this.Behavior(`data\\behavior_packs\\${behaviors[i].path}`);
         }
 
-        const texturesRequest = await FetchFile("data\\behaviorPacks\\manifest.json");
+        const texturesRequest = await FetchFile("data\\behavior_packs\\manifest.json");
         const textures = await texturesRequest.json();
 
         for (let i = 0; i < textures.length; i++)
         {
-            if (textures[i].enabled) await this.Resource(`data\\resourcePacks\\${textures[i].path}`);
+            if (textures[i].enabled) await this.Resource(`data\\resource_packs\\${textures[i].path}`);
         }
 
         this.#loaded = true;
@@ -114,5 +114,3 @@ class PackLoader
         this.#textures.push(manifestData);
     }
 }
-
-PackLoader.Set();

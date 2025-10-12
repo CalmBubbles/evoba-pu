@@ -1,9 +1,128 @@
 class World extends GameBehavior
 {
-    static loadedChunk = false;
-    static seed = 0;
+    static #autosaveTimeInterval = 300;
+    static #autosaveTime = 0;
+    static #chunks = new Map();
+    static #updatedChunks = [];
+
+    static #db = null;
+    static #manifestData = null;
 
     static grid = null;
+
+    static get seed ()
+    {
+        return this.#manifestData.seed;
+    }
+
+    static async Load ()
+    {
+        // window.indexedDB.deleteDatabase("world_0");
+
+        const dbRequest = window.indexedDB.open("world_0");
+        dbRequest.onupgradeneeded = () => {
+            dbRequest.result.createObjectStore("manifest").put({
+                name: "Test World",
+                seed: 0
+            }, 0);
+            dbRequest.result.createObjectStore("map");
+            dbRequest.result.createObjectStore("players");
+        };
+
+        await new Promise(resolve => dbRequest.onsuccess = () => {
+            this.#db = dbRequest.result;
+
+            resolve();
+        });
+
+        const dbTransaction = this.#db.transaction([
+            "manifest",
+            "map"
+        ], "readwrite");
+        // const playersStore = dbTransaction.objectStore("players");
+
+        const manifestRequest = dbTransaction.objectStore("manifest").get(0);
+        await new Promise(resolve => manifestRequest.onsuccess = resolve);
+        this.#manifestData = manifestRequest.result;
+
+        noise.seed(this.seed);
+
+        const mapRequest = dbTransaction.objectStore("map").getAll();
+        await new Promise(resolve => mapRequest.onsuccess = resolve);
+        this.#chunks = new Map(mapRequest.result.map(item => [`${item.pos.x}_${item.pos.y}`, item]));
+
+
+
+        // const dbRequest = window.indexedDB.open("player");
+
+        // let db = null;
+
+        // dbRequest.onupgradeneeded = () => {
+        //     dbRequest.result.createObjectStore("info", { autoIncrement: true });
+        //     dbRequest.result.createObjectStore("settings", { autoIncrement: true });
+        // };
+
+        // await new Promise(resolve => dbRequest.onsuccess = () => {
+        //     db = dbRequest.result;
+
+        //     resolve();
+        // });
+
+        // const dbTransaction = db.transaction(["info", "settings"], "readwrite");
+        // const infoStore = dbTransaction.objectStore("info");
+        // const settingsStore = dbTransaction.objectStore("info");   
+    }
+    
+    static GetChunk (x, y)
+    {
+        return this.#chunks.get(`${x}_${y}`);
+    }
+
+    static SetChunk (chunk)
+    {
+        const key = `${chunk.pos.x}_${chunk.pos.y}`;
+
+        this.#chunks.set(key, {
+            pos: {
+                x: chunk.pos.x,
+                y: chunk.pos.y
+            },
+            tiles: [...chunk.data]
+        });
+        
+        if (!this.#updatedChunks.includes(key)) this.#updatedChunks.push(key);
+    }
+
+    static async Save ()
+    {
+        const dbTransaction = this.#db.transaction("map", "readwrite");
+        const mapStore = dbTransaction.objectStore("map");
+
+        let counter = 0;
+        
+        for (let i = 0; i < this.#updatedChunks.length; i++) (async () => {
+            const chunk = this.#chunks.get(this.#updatedChunks[i]);
+
+            const putRequest = mapStore.put(chunk, this.#updatedChunks[i]);
+            await new Promise(resolve => putRequest.onsuccess = resolve);
+
+            counter++
+        })();
+
+        await CrystalEngine.Wait(() => counter === this.#updatedChunks.length);
+
+        this.#updatedChunks = [];
+        this.#autosaveTime = 0;
+    }
+
+    static UpdateAutosave ()
+    {
+        if (this.#updatedChunks.length === 0) return;
+
+        this.#autosaveTime += Time.unscaledDeltaTime;
+
+        if (this.#autosaveTime > this.#autosaveTimeInterval) this.Save();
+    }
 
     #centerChunk = null;
 
@@ -14,13 +133,24 @@ class World extends GameBehavior
         FPSMeter.detailed = true;
         
         World.grid = this.GetComponent("Grid");
+    }
 
-        noise.seed(0);
+    #GetChunkData (pos)
+    {
+        const chunkData = World.GetChunk(pos.x, pos.y);
+
+        if (chunkData == null) return TerrainBuilder.Generate(pos);
+
+        const chunk = new Chunk();
+        chunk.pos.Set(chunkData.pos.x, chunkData.pos.y);
+        chunk.data = [...chunkData.tiles];
+
+        return chunk;
     }
 
     #LoadChunk (pos)
     {
-        if (ChunkLoader.GetByPos(pos) == null) TerrainBuilder.Generate(pos);
+        if (ChunkLoader.GetByPos(pos) == null) ChunkLoader.Load(this.#GetChunkData(pos));
     }
 
     #UnloadChunk (pos)
@@ -30,17 +160,13 @@ class World extends GameBehavior
         if (chunk != null) ChunkLoader.Unload(chunk);
     }
 
-    LateUpdate ()
+    #UpdateChunks ()
     {
         const camPos = Vector2.Add(Cam.instance.transform.position, new Vector2(0, 4));
         const chunkPos = ChunkLoader.WorldToChunkPos(camPos);
         
         if (this.#centerChunk == null || !this.#centerChunk.bounds.Contains(camPos))
         {
-            World.loadedChunk = false;
-
-            const existing = ChunkLoader.GetByPos(chunkPos);
-
             if (this.#centerChunk != null)
             {
                 const prevChunkPos = this.#centerChunk.pos;
@@ -72,9 +198,14 @@ class World extends GameBehavior
                 }
             }
 
-            World.loadedChunk = true;
+            const existing = ChunkLoader.GetByPos(chunkPos);
 
-            this.#centerChunk = existing ?? TerrainBuilder.Generate(chunkPos);
+            if (existing) this.#centerChunk = existing;
+            else
+            {
+                this.#centerChunk = this.#GetChunkData(chunkPos);
+                ChunkLoader.Load(this.#centerChunk);
+            }
 
             this.#LoadChunk(Vector2.Add(chunkPos, Vector2.up));
             this.#LoadChunk(Vector2.Add(chunkPos, Vector2.left));
@@ -89,6 +220,13 @@ class World extends GameBehavior
                 this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(1, -1)));
             }
         }
+    }
+
+    LateUpdate ()
+    {
+        this.#UpdateChunks();
+
+        World.UpdateAutosave();
 
         FPSMeter.Update();
     }

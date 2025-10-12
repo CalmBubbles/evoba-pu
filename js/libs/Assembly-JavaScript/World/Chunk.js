@@ -33,6 +33,9 @@ class Chunk
         this.tilemap.RemoveTileByPosition(node.pos);
 
         node.owner = null;
+        this.data[this.nodes.indexOf(node)] = "pu:air";
+        
+        World.SetChunk(this);
     }
 
     SetTile (node, tileID)
@@ -45,10 +48,13 @@ class Chunk
         }
 
         node.owner = tileID;
+        this.data[this.nodes.indexOf(node)] = tileID;
 
         this.tilemap.AddTile(new Tile(
             tileID,
             node.pos
         ));
+
+        World.SetChunk(this);
     }
 }

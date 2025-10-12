@@ -13,6 +13,7 @@
         "main"
     ],
     "scenes": [
+        "worldloader",
         "game"
     ],
     "shaders": [
@@ -27,7 +28,7 @@
         "timeScale": 1,
         "fixedDeltaTime": 0.02
     },
-    "noFixedUpdate": true,
+    "noFixedUpdate": false,
     "partioningMaxDepth": 8,
     "input": {
         "gamepad": {

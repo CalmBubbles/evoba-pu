@@ -22,27 +22,23 @@ class Player extends GameBehavior
         this.#timer = this.#delay / Player.speed;
     }
 
-    Update ()
+    FixedUpdate ()
     {
-        if (!World.loadedChunk) return;
-
         if (Math.abs(this.transform.position.x - this.#pos.x) < 0.1 * Player.speed)
         {
             const groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.#pos, Vector2.down));
 
             if (groundNode != null && groundNode.owner == null)
             {
-                this.#pos.y -= 0.5;
+                this.#pos.y -= Time.fixedDeltaTime * 30;
                 this.#timer += Time.deltaTime;
             }
+            else this.#pos.y = Math.ceil(this.#pos.y);
         }
+    }
 
-        this.transform.position = Vector2.Lerp(
-            this.transform.position,
-            World.grid.CellToWorld(this.#pos),
-            20 * Time.deltaTime
-        );
-
+    Update ()
+    {
         const input = new Vector2(
             +Input.GetKey(KeyCode.ArrowRight) - +Input.GetKey(KeyCode.ArrowLeft),
             +Input.GetKey(KeyCode.ArrowUp) - +Input.GetKey(KeyCode.ArrowDown)
@@ -90,7 +86,18 @@ class Player extends GameBehavior
 
         Window.SetTitle(Player.blockCount);
 
+        if (input.y < 0) targetPos.y = this.#pos.y;
+
         this.#pos = targetPos;
         this.#timer = this.#delay / Player.speed;
+    }
+
+    LateUpdate ()
+    {
+        this.transform.position = Vector2.Lerp(
+            this.transform.position,
+            World.grid.CellToWorld(this.#pos),
+            20 * Time.deltaTime
+        );
     }
 }

@@ -1,6 +1,6 @@
 class ChunkLoader
 {
-    static #chunks = [];
+    static #chunks = new Map();
 
     static Load (chunk)
     {
@@ -53,7 +53,7 @@ class ChunkLoader
         
         chunk.tilemap = tilemap;
         chunk.gameObject = gameObj;
-        this.#chunks.push(chunk);
+        this.#chunks.set(`${chunk.pos.x}_${chunk.pos.y}`, chunk);
 
         const scene = SceneManager.GetActiveScene();
         gameObj.scene = scene;
@@ -81,7 +81,7 @@ class ChunkLoader
 
     static GetByPos (pos)
     {
-        return this.#chunks.find(item => item.pos.Equals(pos));
+        return this.#chunks.get(`${pos.x}_${pos.y}`);
     }
 
     static GetNodeByPos (pos)
@@ -96,6 +96,6 @@ class ChunkLoader
         GameObject.Destroy(chunk.gameObject);
         chunk.gameObj = null;
 
-        this.#chunks.splice(this.#chunks.indexOf(chunk), 1);
+        this.#chunks.delete(`${chunk.pos.x}_${chunk.pos.y}`);
     }
 }

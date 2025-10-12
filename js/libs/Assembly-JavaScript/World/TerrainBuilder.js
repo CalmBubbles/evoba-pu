@@ -50,8 +50,6 @@ class TerrainBuilder
             x++;
         }
 
-        ChunkLoader.Load(chunk);
-
         return chunk;
     }
 }
