@@ -166,7 +166,7 @@
         {
             "name" : "Material",
             "type" : 0,
-            "construction" : "if (typeof data === \"string\") Resources.Find(data).Duplicate(); else if (typeof data === \"object\") new Material(Shader.Find(data.vertexShader ?? \"Default/Standard\", \"VERTEX\"), Shader.Find(data.fragmentShader ?? \"Default/Standard\", \"FRAGMENT\"));"
+            "construction" : "if (typeof data === \"string\") return Resources.Find(data).Duplicate(); else if (typeof data === \"object\") return new Material(Shader.Find(data.vertexShader ?? \"Default/Standard\", \"VERTEX\"), Shader.Find(data.fragmentShader ?? \"Default/Standard\", \"FRAGMENT\"));"
         },
         {
             "name" : "Material",

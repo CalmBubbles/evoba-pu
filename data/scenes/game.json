@@ -80,14 +80,22 @@
                 {
                     "type": "Text",
                     "args": {
+                        "material": {
+                            "fragmentShader": "pu/Outline"
+                        },
                         "font": "font",
-                        "text": "10/10",
+                        "text": "HP: 10/10",
                         "height": 2,
                         "pivot": {
                             "x": 0,
                             "y": 0
                         },
-                        "sortingOrder": 29
+                        "sortingOrder": 29,
+                        "color": {
+                            "r": 0,
+                            "g": 0,
+                            "b": 0
+                        }
                     }
                 }
             ]

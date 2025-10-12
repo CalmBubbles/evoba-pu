@@ -13,7 +13,10 @@
         "args": {
             "texture": "font.png",
             "glyphs": "font",
-            "pixelPerUnit": 10
+            "pixelPerUnit": 20,
+            "lineHeight": 8,
+            "forcedLineHeight": true,
+            "charSpacing": 0
         }
     }
 ]

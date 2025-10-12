@@ -6,6 +6,11 @@ class Cam extends GameBehavior
     {
         Cam.instance = this;
     }
+
+    Update ()
+    {
+        if (Input.GetKeyDown(KeyCode.F4)) Window.fullscreen = !Window.fullscreen;
+    }
     
     LateUpdate ()
     {
