@@ -13,6 +13,7 @@
         "main"
     ],
     "scenes": [
+        "init",
         "worldloader",
         "game"
     ],

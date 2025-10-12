@@ -2,6 +2,7 @@
     "name": "Game",
     "resources": [
         "pu",
+        "test",
         "font"
     ],
     "gameObjects": [
@@ -63,6 +64,22 @@
                 },
                 {
                     "type": "Player"
+                }
+            ]
+        },
+        {
+            "name": "gui",
+            "id": 3,
+            "parent": 0,
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "test"
+                        },
+                        "sortingOrder": 2
+                    }
                 }
             ]
         },

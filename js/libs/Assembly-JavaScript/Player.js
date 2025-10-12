@@ -14,8 +14,19 @@ class Player extends GameBehavior
     #yTime = 0;
     #pos = new Vector2(0, 2);
 
+    get pos ()
+    {
+        return this.#pos;
+    }
+
     Start ()
     {
+        const playerData = World.GetPlayer(UserData.id);
+
+        console.log(playerData);
+
+        if (playerData != null) this.#pos.Set(playerData.pos.x, playerData.pos.y);
+
         Player.instance = this;
 
         this.transform.position = World.grid.CellToWorld(this.#pos);
@@ -34,6 +45,8 @@ class Player extends GameBehavior
                 this.#timer += Time.deltaTime;
             }
             else this.#pos.y = Math.ceil(this.#pos.y);
+
+            World.SetPlayer(this);
         }
     }
 
@@ -90,6 +103,8 @@ class Player extends GameBehavior
 
         this.#pos = targetPos;
         this.#timer = this.#delay / Player.speed;
+
+        World.SetPlayer(this);
     }
 
     LateUpdate ()

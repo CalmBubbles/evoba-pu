@@ -4,6 +4,8 @@ class World extends GameBehavior
     static #autosaveTime = 0;
     static #chunks = new Map();
     static #updatedChunks = [];
+    static #players = new Map();
+    static #updatedPlayers = [];
 
     static #db = null;
     static #manifestData = null;
@@ -37,9 +39,9 @@ class World extends GameBehavior
 
         const dbTransaction = this.#db.transaction([
             "manifest",
-            "map"
+            "map",
+            "players"
         ], "readwrite");
-        // const playersStore = dbTransaction.objectStore("players");
 
         const manifestRequest = dbTransaction.objectStore("manifest").get(0);
         await new Promise(resolve => manifestRequest.onsuccess = resolve);
@@ -51,26 +53,9 @@ class World extends GameBehavior
         await new Promise(resolve => mapRequest.onsuccess = resolve);
         this.#chunks = new Map(mapRequest.result.map(item => [`${item.pos.x}_${item.pos.y}`, item]));
 
-
-
-        // const dbRequest = window.indexedDB.open("player");
-
-        // let db = null;
-
-        // dbRequest.onupgradeneeded = () => {
-        //     dbRequest.result.createObjectStore("info", { autoIncrement: true });
-        //     dbRequest.result.createObjectStore("settings", { autoIncrement: true });
-        // };
-
-        // await new Promise(resolve => dbRequest.onsuccess = () => {
-        //     db = dbRequest.result;
-
-        //     resolve();
-        // });
-
-        // const dbTransaction = db.transaction(["info", "settings"], "readwrite");
-        // const infoStore = dbTransaction.objectStore("info");
-        // const settingsStore = dbTransaction.objectStore("info");   
+        const playersRequest = dbTransaction.objectStore("players").getAll();
+        await new Promise(resolve => playersRequest.onsuccess = resolve);
+        this.#players = new Map(playersRequest.result.map(item => [item.id, item]));
     }
     
     static GetChunk (x, y)
@@ -93,10 +78,31 @@ class World extends GameBehavior
         if (!this.#updatedChunks.includes(key)) this.#updatedChunks.push(key);
     }
 
+    static GetPlayer (id)
+    {
+        return this.#players.get(id);
+    }
+
+    static SetPlayer (player)
+    {
+        this.#players.set(UserData.id, {
+            pos: {
+                x: player.pos.x,
+                y: player.pos.y
+            }
+        });
+        
+        if (!this.#updatedPlayers.includes(UserData.i)) this.#updatedPlayers.push(UserData.id);
+    }
+
     static async Save ()
     {
-        const dbTransaction = this.#db.transaction("map", "readwrite");
+        const dbTransaction = this.#db.transaction([
+            "map",
+            "players"
+        ], "readwrite");
         const mapStore = dbTransaction.objectStore("map");
+        const playersStore = dbTransaction.objectStore("players");
 
         let counter = 0;
         
@@ -109,15 +115,25 @@ class World extends GameBehavior
             counter++
         })();
 
-        await CrystalEngine.Wait(() => counter === this.#updatedChunks.length);
+        for (let i = 0; i < this.#updatedPlayers.length; i++) (async () => {
+            const chunk = this.#players.get(this.#updatedPlayers[i]);
+
+            const putRequest = playersStore.put(chunk, this.#updatedPlayers[i]);
+            await new Promise(resolve => putRequest.onsuccess = resolve);
+
+            counter++
+        })();
+
+        await CrystalEngine.Wait(() => counter === this.#updatedChunks.length + this.#updatedPlayers.length);
 
         this.#updatedChunks = [];
+        this.#updatedPlayers = [];
         this.#autosaveTime = 0;
     }
 
     static UpdateAutosave ()
     {
-        if (this.#updatedChunks.length === 0) return;
+        if (this.#updatedChunks.length === 0 && this.#updatedPlayers === 0) return;
 
         this.#autosaveTime += Time.unscaledDeltaTime;
 
@@ -129,8 +145,8 @@ class World extends GameBehavior
     Start ()
     {
         Crispixels.effect = true;
-        FPSMeter.enabled = true;
-        FPSMeter.detailed = true;
+        // FPSMeter.enabled = true;
+        // FPSMeter.detailed = true;
         
         World.grid = this.GetComponent("Grid");
     }

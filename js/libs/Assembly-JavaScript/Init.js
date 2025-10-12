@@ -1,12 +1,13 @@
-class WorldLoader extends GameBehavior
+class Init extends GameBehavior
 {
     #state = 0;
 
     Start ()
     {
         (async () => {
-            await World.Load();
-            await SceneManager.Load(2);
+            await PackLoader.Set();
+            await UserData.Load();
+            await SceneManager.Load(1);
 
             this.#state = 1;
         })();
@@ -16,7 +17,7 @@ class WorldLoader extends GameBehavior
     {
         if (this.#state === 1)
         {
-            SceneManager.SetActiveScene(2);
+            SceneManager.SetActiveScene(1);
 
             this.#state = 3;
         }
