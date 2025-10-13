@@ -23,9 +23,18 @@ class Test extends GameBehavior
 
     Update ()
     {
+        const input = new Vector2(
+            +Input.GetKey(KeyCode.ArrowRight) - +Input.GetKey(KeyCode.ArrowLeft),
+            +Input.GetKey(KeyCode.ArrowUp) - +Input.GetKey(KeyCode.ArrowDown)
+        );
+
+        this.transform.position = Vector2.Add(this.transform.position, Vector2.Scale(input, Time.deltaTime));
+
         if (!this.#loaded) return;
 
         const bounds = this.#a.bounds;
+
+        Window.SetTitle(bounds);
 
         this.#parts[0].transform.position = bounds.min;
         this.#parts[1].transform.position = bounds.max;

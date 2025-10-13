@@ -2,6 +2,7 @@
     "name" : "Assembly-JavaScript",
     "description" : "The assembly module where all of the build scripts are located",
     "scripts" : [
+        "Test",
         "Init",
         "UserData",
         "Player",
@@ -16,6 +17,10 @@
         "Cam"
     ],
     "classes" : [
+        {
+            "name": "Test",
+            "type": 0
+        },
         {
             "name": "Init",
             "type": 0

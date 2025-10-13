@@ -12,10 +12,12 @@
         "type": "Texture",
         "args": {
             "src": "pixel.png",
-            "pixelPerUnit": 10,
-            "pivot": {
-                "x": 0,
-                "y": 0
+            "pixelPerUnit": 20,
+            "sprite": {
+                "pivot": {
+                    "x": 0,
+                    "y": 0
+                }
             }
         }
     },
@@ -37,6 +39,30 @@
             "lineHeight": 8,
             "forcedLineHeight": true,
             "charSpacing": 0
+        }
+    },
+    {
+        "path": "pu",
+        "type": "GameObject",
+        "args": {
+            "name": "pu",
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "pu"
+                        },
+                        "sortingOrder": 50,
+                        "color": {
+                            "r": 255,
+                            "g": 255,
+                            "b": 255,
+                            "a": 128
+                        }
+                    }
+                }
+            ]
         }
     }
 ]

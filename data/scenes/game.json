@@ -140,6 +140,47 @@
             "name": "hp_back",
             "id": 5,
             "parent": 0,
+            "transform": {
+                "position": {
+                    "x": -7.45,
+                    "y": 4.35
+                },
+                "scale": {
+                    "x": 40,
+                    "y": 6
+                }
+            },
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "pixel"
+                        },
+                        "sortingOrder": 28,
+                        "color": {
+                            "r": 128,
+                            "g": 0,
+                            "b": 0
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "hp_bar",
+            "id": 6,
+            "parent": 0,
+            "transform": {
+                "position": {
+                    "x": -7.45,
+                    "y": 4.35
+                },
+                "scale": {
+                    "x": 35,
+                    "y": 6
+                }
+            },
             "components": [
                 {
                     "type": "SpriteRenderer",
