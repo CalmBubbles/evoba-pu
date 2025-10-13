@@ -86,6 +86,7 @@ class World extends GameBehavior
     static SetPlayer (player)
     {
         this.#players.set(UserData.id, {
+            id: UserData.id,
             pos: {
                 x: player.pos.x,
                 y: player.pos.y
@@ -116,9 +117,9 @@ class World extends GameBehavior
         })();
 
         for (let i = 0; i < this.#updatedPlayers.length; i++) (async () => {
-            const chunk = this.#players.get(this.#updatedPlayers[i]);
+            const player = this.#players.get(this.#updatedPlayers[i]);
 
-            const putRequest = playersStore.put(chunk, this.#updatedPlayers[i]);
+            const putRequest = playersStore.put(player, this.#updatedPlayers[i]);
             await new Promise(resolve => putRequest.onsuccess = resolve);
 
             counter++

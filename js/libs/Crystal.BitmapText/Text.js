@@ -480,12 +480,9 @@ class Text extends Renderer
 
         const posMat = Matrix3x3.Multiply(refMat, Matrix3x3.Translate(Vector2.Add(
             pos,
-            Vector2.Scale(
-                new Vector2(
-                    0.5 - pivot.x,
-                    0.5 - pivot.y
-                ),
-                2
+            new Vector2(
+                (0.5 - pivot.x) * this.#width,
+                (0.5 - pivot.y) * this.#height
             )
         )));
 

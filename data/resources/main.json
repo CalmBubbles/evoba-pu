@@ -8,6 +8,18 @@
         }
     },
     {
+        "path": "pixel",
+        "type": "Texture",
+        "args": {
+            "src": "pixel.png",
+            "pixelPerUnit": 10,
+            "pivot": {
+                "x": 0,
+                "y": 0
+            }
+        }
+    },
+    {
         "path": "test",
         "type": "Texture",
         "args": {

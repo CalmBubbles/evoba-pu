@@ -2,6 +2,7 @@
     "name": "Game",
     "resources": [
         "pu",
+        "pixel",
         "test",
         "font"
     ],
@@ -78,19 +79,25 @@
                         "sprite": {
                             "texture": "test"
                         },
-                        "sortingOrder": 2
+                        "sortingOrder": 2,
+                        "color": {
+                            "r": 0,
+                            "g": 255,
+                            "b": 255,
+                            "a": 128
+                        }
                     }
                 }
             ]
         },
         {
-            "name": "aaaa",
-            "id": 124,
+            "name": "hp_text",
+            "id": 4,
             "parent": 0,
             "transform": {
                 "position": {
-                    "x": -4.5,
-                    "y": 4.5
+                    "x": -7.4,
+                    "y": 4.6
                 }
             },
             "components": [
@@ -98,18 +105,51 @@
                     "type": "Text",
                     "args": {
                         "material": {
-                            "fragmentShader": "pu/Outline"
+                            "fragmentShader": "pu/Outline",
+                            "properties": [
+                                {
+                                    "name": "uOutlineColor",
+                                    "type": "Vector",
+                                    "value": [ 1, 0, 0, 1 ]
+                                },
+                                {
+                                    "name": "uIncludeCorners",
+                                    "type": "Boolean",
+                                    "value": true
+                                },
+                                {
+                                    "name": "uAlphaThreshold",
+                                    "type": "Float",
+                                    "value": 0.5
+                                }
+                            ]
                         },
                         "font": "font",
-                        "text": "HP: 10/10",
+                        "text": "8/10",
                         "height": 2,
                         "pivot": {
                             "x": 0,
                             "y": 0
                         },
-                        "sortingOrder": 29,
+                        "sortingOrder": 30
+                    }
+                }
+            ]
+        },
+        {
+            "name": "hp_back",
+            "id": 5,
+            "parent": 0,
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "pixel"
+                        },
+                        "sortingOrder": 28,
                         "color": {
-                            "r": 0,
+                            "r": 255,
                             "g": 0,
                             "b": 0
                         }

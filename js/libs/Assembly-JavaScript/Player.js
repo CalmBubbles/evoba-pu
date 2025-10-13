@@ -23,8 +23,6 @@ class Player extends GameBehavior
     {
         const playerData = World.GetPlayer(UserData.id);
 
-        console.log(playerData);
-
         if (playerData != null) this.#pos.Set(playerData.pos.x, playerData.pos.y);
 
         Player.instance = this;
