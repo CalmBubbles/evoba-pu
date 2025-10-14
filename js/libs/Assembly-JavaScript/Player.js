@@ -2,7 +2,9 @@ class Player extends GameBehavior
 {
     static hp = 10;
     static maxHp = 10;
-    static blockCount = 0;
+    static energy = 15;
+    static maxEnergy = 15;
+    static tiles = 0;
     static strength = 2;
     static speed = 1;
 
@@ -23,7 +25,11 @@ class Player extends GameBehavior
     {
         const playerData = World.GetPlayer(UserData.id);
 
-        if (playerData != null) this.#pos.Set(playerData.pos.x, playerData.pos.y);
+        if (playerData != null)
+        {
+            this.#pos.Set(playerData.pos.x, playerData.pos.y);
+            Player.tiles = playerData.tiles;
+        }
 
         Player.instance = this;
 
@@ -79,23 +85,21 @@ class Player extends GameBehavior
         const targetPos = Vector2.Add(this.#pos, input);
         const nextNode = ChunkLoader.GetNodeByPos(targetPos);
 
-        if (nextNode == null || (input.y > 0 && Player.blockCount === 0)) return;
+        if (nextNode == null || (input.y > 0 && Player.tiles === 0)) return;
 
         if (nextNode.owner != null)
         {
             if (nextNode.owner.hardness - Player.strength > 0) return;
 
-            Player.blockCount++;
+            Player.tiles++;
             nextNode.RemoveTile();
         }
 
-        if (input.y > 0 && Player.blockCount > 0)
+        if (input.y > 0 && Player.tiles > 0)
         {
-            Player.blockCount--;
+            Player.tiles--;
             ChunkLoader.GetNodeByPos(this.#pos).SetTile("pu:dirt");
         }
-
-        Window.SetTitle(Player.blockCount);
 
         if (input.y < 0) targetPos.y = this.#pos.y;
 

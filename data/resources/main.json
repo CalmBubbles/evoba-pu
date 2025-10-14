@@ -64,5 +64,47 @@
                 }
             ]
         }
+    },
+    {
+        "path": "icons",
+        "type": "Texture",
+        "args": {
+            "src": "icons.png",
+            "pixelPerUnit": 20,
+            "sprites": [
+                {
+                    "name": "hp",
+                    "rect": {
+                        "width": 9,
+                        "height": 9
+                    }
+                },
+                {
+                    "name": "tiles",
+                    "rect": {
+                        "x": 9,
+                        "width": 9,
+                        "height": 9
+                    }
+                },
+                {
+                    "name": "energy",
+                    "rect": {
+                        "y": 9,
+                        "width": 9,
+                        "height": 9
+                    }
+                },
+                {
+                    "name": "arrow",
+                    "rect": {
+                        "x": 11,
+                        "y": 11,
+                        "width": 4,
+                        "height": 5
+                    }
+                }
+            ]
+        }
     }
 ]

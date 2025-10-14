@@ -90,7 +90,8 @@ class World extends GameBehavior
             pos: {
                 x: player.pos.x,
                 y: player.pos.y
-            }
+            },
+            tiles: Player.tiles
         });
         
         if (!this.#updatedPlayers.includes(UserData.i)) this.#updatedPlayers.push(UserData.id);

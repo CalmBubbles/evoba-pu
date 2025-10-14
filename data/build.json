@@ -44,5 +44,11 @@
             }
         }
     },
-    "layers": []
+    "layers": [
+        {
+            "name": "UI",
+            "id": 1,
+            "value": 2
+        }
+    ]
 }

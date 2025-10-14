@@ -14,7 +14,8 @@
         "World/TerrainBuilder",
         "World/World",
         "World/WorldLoader",
-        "Cam"
+        "Cam",
+        "GUI"
     ],
     "classes" : [
         {
@@ -39,6 +40,10 @@
         },
         {
             "name": "WorldLoader",
+            "type": 0
+        },
+        {
+            "name": "GUI",
             "type": 0
         }
     ]

@@ -4,7 +4,8 @@
         "pu",
         "pixel",
         "test",
-        "font"
+        "font",
+        "icons"
     ],
     "gameObjects": [
         {
@@ -84,20 +85,34 @@
                             "r": 0,
                             "g": 255,
                             "b": 255,
-                            "a": 128
+                            "a": 0
                         }
                     }
+                },
+                {
+                    "type": "GUI"
                 }
             ]
         },
         {
-            "name": "hp_text",
+            "name": "hp",
             "id": 4,
-            "parent": 0,
+            "parent": 3,
             "transform": {
                 "position": {
-                    "x": -7.4,
-                    "y": 4.6
+                    "x": -7.45,
+                    "y": 4.35
+                }
+            }
+        },
+        {
+            "name": "text",
+            "id": 5,
+            "parent": 4,
+            "transform": {
+                "position": {
+                    "x": 0.05,
+                    "y": 0.25
                 }
             },
             "components": [
@@ -125,26 +140,24 @@
                             ]
                         },
                         "font": "font",
-                        "text": "8/10",
-                        "height": 2,
+                        "text": "10/10",
+                        "overflowWidth": true,
+                        "height": 0.4,
                         "pivot": {
                             "x": 0,
                             "y": 0
                         },
-                        "sortingOrder": 30
+                        "sortingLayer": 1,
+                        "sortingOrder": 2
                     }
                 }
             ]
         },
         {
-            "name": "hp_back",
-            "id": 5,
-            "parent": 0,
+            "name": "back",
+            "id": 6,
+            "parent": 4,
             "transform": {
-                "position": {
-                    "x": -7.45,
-                    "y": 4.35
-                },
                 "scale": {
                     "x": 40,
                     "y": 6
@@ -157,7 +170,7 @@
                         "sprite": {
                             "texture": "pixel"
                         },
-                        "sortingOrder": 28,
+                        "sortingLayer": 1,
                         "color": {
                             "r": 128,
                             "g": 0,
@@ -168,16 +181,12 @@
             ]
         },
         {
-            "name": "hp_bar",
-            "id": 6,
-            "parent": 0,
+            "name": "bar",
+            "id": 7,
+            "parent": 4,
             "transform": {
-                "position": {
-                    "x": -7.45,
-                    "y": 4.35
-                },
                 "scale": {
-                    "x": 35,
+                    "x": 40,
                     "y": 6
                 }
             },
@@ -188,12 +197,249 @@
                         "sprite": {
                             "texture": "pixel"
                         },
-                        "sortingOrder": 28,
+                        "sortingLayer": 1,
+                        "sortingOrder": 1,
                         "color": {
                             "r": 255,
                             "g": 0,
                             "b": 0
                         }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "icon",
+            "id": 8,
+            "parent": 4,
+            "transform": {
+                "position": {
+                    "x": -0.325,
+                    "y": -0.075
+                }
+            },
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "icons",
+                            "name": "hp"
+                        },
+                        "sortingLayer": 1
+                    }
+                }
+            ]
+        },
+        {
+            "name": "energy",
+            "id": 9,
+            "parent": 3,
+            "transform": {
+                "position": {
+                    "x": -7.45,
+                    "y": 3.75
+                }
+            }
+        },
+        {
+            "name": "text",
+            "id": 10,
+            "parent": 9,
+            "transform": {
+                "position": {
+                    "x": 0.05,
+                    "y": 0.25
+                }
+            },
+            "components": [
+                {
+                    "type": "Text",
+                    "args": {
+                        "material": {
+                            "fragmentShader": "pu/Outline",
+                            "properties": [
+                                {
+                                    "name": "uOutlineColor",
+                                    "type": "Vector",
+                                    "value": [ 1, 0.6, 0, 1 ]
+                                },
+                                {
+                                    "name": "uIncludeCorners",
+                                    "type": "Boolean",
+                                    "value": true
+                                },
+                                {
+                                    "name": "uAlphaThreshold",
+                                    "type": "Float",
+                                    "value": 0.5
+                                }
+                            ]
+                        },
+                        "font": "font",
+                        "text": "15/15",
+                        "overflowWidth": true,
+                        "height": 0.4,
+                        "pivot": {
+                            "x": 0,
+                            "y": 0
+                        },
+                        "sortingLayer": 1,
+                        "sortingOrder": 2
+                    }
+                }
+            ]
+        },
+        {
+            "name": "back",
+            "id": 11,
+            "parent": 9,
+            "transform": {
+                "scale": {
+                    "x": 60,
+                    "y": 6
+                }
+            },
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "pixel"
+                        },
+                        "sortingLayer": 1,
+                        "color": {
+                            "r": 128,
+                            "g": 76,
+                            "b": 0
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "bar",
+            "id": 12,
+            "parent": 9,
+            "transform": {
+                "scale": {
+                    "x": 60,
+                    "y": 6
+                }
+            },
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "pixel"
+                        },
+                        "sortingLayer": 1,
+                        "sortingOrder": 1,
+                        "color": {
+                            "r": 255,
+                            "g": 153,
+                            "b": 0
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "icon",
+            "id": 13,
+            "parent": 9,
+            "transform": {
+                "position": {
+                    "x": -0.325,
+                    "y": -0.075
+                }
+            },
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "icons",
+                            "name": "energy"
+                        },
+                        "sortingLayer": 1
+                    }
+                }
+            ]
+        },
+        {
+            "name": "tiles",
+            "id": 14,
+            "parent": 3,
+            "transform": {
+                "position": {
+                    "x": 7.775,
+                    "y": -3.675
+                }
+            }
+        },
+        {
+            "name": "text",
+            "id": 15,
+            "parent": 14,
+            "transform": {
+                "position": {
+                    "x": -0.375,
+                    "y": 0.225
+                }
+            },
+            "components": [
+                {
+                    "type": "Text",
+                    "args": {
+                        "material": {
+                            "fragmentShader": "pu/Outline",
+                            "properties": [
+                                {
+                                    "name": "uOutlineColor",
+                                    "type": "Vector",
+                                    "value": [ 0, 0, 0, 1 ]
+                                },
+                                {
+                                    "name": "uIncludeCorners",
+                                    "type": "Boolean",
+                                    "value": true
+                                },
+                                {
+                                    "name": "uAlphaThreshold",
+                                    "type": "Float",
+                                    "value": 0.5
+                                }
+                            ]
+                        },
+                        "font": "font",
+                        "text": "0",
+                        "overflowWidth": true,
+                        "horizontalAlign": 2,
+                        "height": 0.4,
+                        "pivot": {
+                            "x": 1,
+                            "y": 0
+                        },
+                        "sortingLayer": 1
+                    }
+                }
+            ]
+        },
+        {
+            "name": "icon",
+            "id": 16,
+            "parent": 14,
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "icons",
+                            "name": "tiles"
+                        },
+                        "sortingLayer": 1
                     }
                 }
             ]
