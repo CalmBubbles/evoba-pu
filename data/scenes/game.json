@@ -159,7 +159,7 @@
             "parent": 4,
             "transform": {
                 "scale": {
-                    "x": 40,
+                    "x": 0,
                     "y": 6
                 }
             },
@@ -186,7 +186,7 @@
             "parent": 4,
             "transform": {
                 "scale": {
-                    "x": 40,
+                    "x": 0,
                     "y": 6
                 }
             },
@@ -296,7 +296,7 @@
             "parent": 9,
             "transform": {
                 "scale": {
-                    "x": 60,
+                    "x": 0,
                     "y": 6
                 }
             },
@@ -323,7 +323,7 @@
             "parent": 9,
             "transform": {
                 "scale": {
-                    "x": 60,
+                    "x": 0,
                     "y": 6
                 }
             },

@@ -1,13 +1,5 @@
-class Player extends GameBehavior
+class Player extends Entity
 {
-    static hp = 10;
-    static maxHp = 10;
-    static energy = 15;
-    static maxEnergy = 15;
-    static tiles = 0;
-    static strength = 2;
-    static speed = 1;
-
     static instance = null;
 
     #delay = 0.2;
@@ -15,6 +7,20 @@ class Player extends GameBehavior
     #xTime = 0;
     #yTime = 0;
     #pos = new Vector2(0, 2);
+
+    #fallStart = null;
+
+    get #dependentDelay ()
+    {
+        return this.#delay + Math.max(0.2 * (3 - this.energy), 0);
+    }
+
+    hp = 10;
+    maxHp = 10;
+    energy = 15;
+    maxEnergy = 15;
+    tiles = 0;
+    strength = 2;
 
     get pos ()
     {
@@ -28,33 +34,55 @@ class Player extends GameBehavior
         if (playerData != null)
         {
             this.#pos.Set(playerData.pos.x, playerData.pos.y);
-            Player.tiles = playerData.tiles;
+            this.tiles = playerData.tiles;
         }
 
         Player.instance = this;
 
         this.transform.position = World.grid.CellToWorld(this.#pos);
-        this.#timer = this.#delay / Player.speed;
+        this.#timer = this.#dependentDelay / this.speed;
     }
 
     FixedUpdate ()
     {
-        if (Math.abs(this.transform.position.x - this.#pos.x) < 0.1 * Player.speed)
+        if (Math.abs(this.transform.position.x - this.#pos.x) < (0.04 / this.#dependentDelay) * this.speed)
         {
             const groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.#pos, Vector2.down));
 
             if (groundNode != null && groundNode.owner == null)
             {
+                if (this.#fallStart == null) this.#fallStart = this.#pos.y;
+
                 this.#pos.y -= Time.fixedDeltaTime * 30;
                 this.#timer += Time.deltaTime;
             }
-            else this.#pos.y = Math.ceil(this.#pos.y);
+            else if (this.#fallStart != null)
+            {
+                this.#pos.y = Math.ceil(this.#pos.y);
+                const fallHeight = Math.round(this.#fallStart - this.#pos.y);
+                this.#fallStart = null;
+
+                if (fallHeight > 3)
+                {
+                    const dmg = Math.max((fallHeight - 3) * 2, 0);
+                    this.hp -= dmg;
+
+                    Cam.instance.Shake(
+                        Math.Clamp(0.01 * dmg, 0.125, 0.5),
+                        Vector2.Min(
+                            Vector2.Scale(new Vector2(0.5, 3), dmg),
+                            new Vector2(3, 20)
+                        ),
+                        Math.min(4 * dmg, 10)
+                    );
+                }
+            }
 
             World.SetPlayer(this);
         }
     }
 
-    Update ()
+    #UpdateMovement ()
     {
         const input = new Vector2(
             +Input.GetKey(KeyCode.ArrowRight) - +Input.GetKey(KeyCode.ArrowLeft),
@@ -85,28 +113,41 @@ class Player extends GameBehavior
         const targetPos = Vector2.Add(this.#pos, input);
         const nextNode = ChunkLoader.GetNodeByPos(targetPos);
 
-        if (nextNode == null || (input.y > 0 && Player.tiles === 0)) return;
+        if (nextNode == null || (input.y > 0 && this.tiles === 0)) return;
 
         if (nextNode.owner != null)
         {
-            if (nextNode.owner.hardness - Player.strength > 0) return;
+            if (nextNode.owner.hardness - this.strength > 0) return;
 
-            Player.tiles++;
+            this.tiles++;
+            this.energy -= 0.025;
             nextNode.RemoveTile();
         }
 
-        if (input.y > 0 && Player.tiles > 0)
+        if (input.y > 0 && this.tiles > 0)
         {
-            Player.tiles--;
+            this.tiles--;
+            this.energy -= 0.025;
             ChunkLoader.GetNodeByPos(this.#pos).SetTile("pu:dirt");
         }
 
         if (input.y < 0) targetPos.y = this.#pos.y;
 
         this.#pos = targetPos;
-        this.#timer = this.#delay / Player.speed;
+        this.#timer = this.#dependentDelay / this.speed;
 
         World.SetPlayer(this);
+    }
+
+    Update ()
+    {
+        this.#UpdateMovement();
+
+        if (this.hp < this.maxHp)
+        {
+            this.hp = Math.min(this.hp + 0.0625 * Time.deltaTime, this.maxHp);
+            this.energy = Math.max(this.energy - 0.078125 * Time.deltaTime, 0);
+        }
     }
 
     LateUpdate ()

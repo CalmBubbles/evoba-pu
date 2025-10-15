@@ -590,9 +590,9 @@
     {
         "character": "d",
         "rect": {
-            "x": 18,
+            "x": 17,
             "y": 40,
-            "width": 5,
+            "width": 6,
             "height": 10
         }
     },
