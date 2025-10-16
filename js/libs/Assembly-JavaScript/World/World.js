@@ -12,6 +12,11 @@ class World extends GameBehavior
 
     static grid = null;
 
+    static get saved ()
+    {
+        return this.#updatedChunks.length === 0 && this.#updatedPlayers.length === 0;
+    }
+    
     static get seed ()
     {
         return this.#manifestData.seed;
@@ -91,7 +96,11 @@ class World extends GameBehavior
                 x: player.pos.x,
                 y: player.pos.y
             },
-            tiles: Player.tiles
+            tiles: player.tiles,
+            hp: player.hp,
+            maxHp: player.maxHp,
+            energy: player.energy,
+            maxEnergy: player.maxEnergy
         });
         
         if (!this.#updatedPlayers.includes(UserData.i)) this.#updatedPlayers.push(UserData.id);
@@ -99,6 +108,8 @@ class World extends GameBehavior
 
     static async Save ()
     {
+        if (this.saved) return;
+
         const dbTransaction = this.#db.transaction([
             "map",
             "players"
@@ -247,5 +258,21 @@ class World extends GameBehavior
         World.UpdateAutosave();
 
         FPSMeter.Update();
+    }
+
+    async OnApplicationQuit ()
+    {
+        if (World.saved) return;
+
+        Application.CancelQuit();
+
+        await World.Save();
+
+        Application.Quit();
+    }
+
+    OnApplicationFocus (state)
+    {
+        if (!state && !World.saved) World.Save();
     }
 }

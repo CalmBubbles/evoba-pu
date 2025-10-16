@@ -38,9 +38,9 @@ class GUI extends GameBehavior
         if (this.#hp !== Player.instance.hp)
         {
             this.#hp = Player.instance.hp;
-            this.#hpText.text = `${Math.ceil(this.#hp)}/${Math.ceil(this.#maxHp)}`;
+            this.#hpText.text = `${Math.round(this.#hp)}/${Math.round(this.#maxHp)}`;
             this.#hpBar.scale = new Vector2(
-                Math.Clamp(4 * Math.ceil(this.#hp), 0, 160),
+                Math.Clamp(4 * Math.round(this.#hp), 0, 160),
                 this.#hpBar.scale.y
             );
         }
@@ -48,7 +48,7 @@ class GUI extends GameBehavior
         if (this.#maxHp !== Player.instance.maxHp)
         {
             this.#maxHp = Player.instance.maxHp;
-            this.#hpText.text = `${Math.ceil(this.#hp)}/${Math.ceil(this.#maxHp)}`;
+            this.#hpText.text = `${Math.round(this.#hp)}/${Math.round(this.#maxHp)}`;
             this.#hpBack.scale = new Vector2(
                 Math.Clamp(4 * (this.#maxHp), 0, 160),
                 this.#hpBack.scale.y
@@ -58,9 +58,9 @@ class GUI extends GameBehavior
         if (this.#energy !== Player.instance.energy)
         {
             this.#energy = Player.instance.energy;
-            this.#energyText.text = `${Math.ceil(this.#energy)}/${Math.ceil(this.#maxEnergy)}`;
+            this.#energyText.text = `${Math.round(this.#energy)}/${Math.round(this.#maxEnergy)}`;
             this.#energyBar.scale = new Vector2(
-                Math.Clamp(4 * Math.ceil(this.#energy), 0, 160),
+                Math.Clamp(4 * Math.round(this.#energy), 0, 160),
                 this.#energyBar.scale.y
             );
         }
@@ -68,9 +68,9 @@ class GUI extends GameBehavior
         if (this.#maxEnergy !== Player.instance.maxEnergy)
         {
             this.#maxEnergy = Player.instance.maxEnergy;
-            this.#energyText.text = `${Math.ceil(this.#energy)}/${Math.ceil(this.#maxEnergy)}`;
+            this.#energyText.text = `${Math.round(this.#energy)}/${Math.round(this.#maxEnergy)}`;
             this.#energyBack.scale = new Vector2(
-                Math.Clamp(4 * Math.ceil(this.#maxEnergy), 0, 160),
+                Math.Clamp(4 * Math.round(this.#maxEnergy), 0, 160),
                 this.#energyBack.scale.y
             );
         }

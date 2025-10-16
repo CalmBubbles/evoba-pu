@@ -35,6 +35,10 @@ class Player extends Entity
         {
             this.#pos.Set(playerData.pos.x, playerData.pos.y);
             this.tiles = playerData.tiles;
+            this.hp = playerData.hp;
+            this.maxHp = playerData.maxHp;
+            this.energy = playerData.energy;
+            this.maxEnergy = playerData.maxEnergy;
         }
 
         Player.instance = this;
@@ -66,6 +70,7 @@ class Player extends Entity
                 {
                     const dmg = Math.max((fallHeight - 3) * 2, 0);
                     this.hp -= dmg;
+                    Window.SetTitle(this.hp);
 
                     Cam.instance.Shake(
                         Math.Clamp(0.01 * dmg, 0.125, 0.5),
