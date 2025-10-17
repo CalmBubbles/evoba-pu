@@ -1,0 +1,8 @@
+{
+    "id": "pu:rug",
+    "movement": {
+        "type": "pu:normal",
+        "stop_on_ledge": true
+    },
+    "aggressiveness": 2
+}

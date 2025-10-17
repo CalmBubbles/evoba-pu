@@ -1,10 +1,8 @@
 class Entity extends GameBehavior
 {
+    hp = 1;
+    maxHp = 1;
     strength = 1;
     speed = 1;
-
-    get pos ()
-    {
-        return Vector2.zero;
-    }
+    pos = Vector2.zero;
 }

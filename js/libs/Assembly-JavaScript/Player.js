@@ -6,7 +6,6 @@ class Player extends Entity
     #timer = 0;
     #xTime = 0;
     #yTime = 0;
-    #pos = new Vector2(0, 2);
 
     #fallStart = null;
 
@@ -21,11 +20,7 @@ class Player extends Entity
     maxEnergy = 15;
     tiles = 0;
     strength = 2;
-
-    get pos ()
-    {
-        return this.#pos;
-    }
+    pos = new Vector2(0, 2);
 
     Start ()
     {
@@ -33,7 +28,7 @@ class Player extends Entity
 
         if (playerData != null)
         {
-            this.#pos.Set(playerData.pos.x, playerData.pos.y);
+            this.pos.Set(playerData.pos.x, playerData.pos.y);
             this.tiles = playerData.tiles;
             this.hp = playerData.hp;
             this.maxHp = playerData.maxHp;
@@ -43,27 +38,27 @@ class Player extends Entity
 
         Player.instance = this;
 
-        this.transform.position = World.grid.CellToWorld(this.#pos);
+        this.transform.position = World.grid.CellToWorld(this.pos);
         this.#timer = this.#dependentDelay / this.speed;
     }
 
     FixedUpdate ()
     {
-        if (Math.abs(this.transform.position.x - this.#pos.x) < (0.04 / this.#dependentDelay) * this.speed)
+        if (Math.abs(this.transform.position.x - this.pos.x) < (0.04 / this.#dependentDelay) * this.speed)
         {
-            const groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.#pos, Vector2.down));
+            const groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.pos, Vector2.down));
 
             if (groundNode != null && groundNode.owner == null)
             {
-                if (this.#fallStart == null) this.#fallStart = this.#pos.y;
+                if (this.#fallStart == null) this.#fallStart = this.pos.y;
 
-                this.#pos.y -= Time.fixedDeltaTime * 30;
+                this.pos.y -= Time.fixedDeltaTime * 30;
                 this.#timer += Time.deltaTime;
             }
             else if (this.#fallStart != null)
             {
-                this.#pos.y = Math.ceil(this.#pos.y);
-                const fallHeight = Math.round(this.#fallStart - this.#pos.y);
+                this.pos.y = Math.ceil(this.pos.y);
+                const fallHeight = Math.round(this.#fallStart - this.pos.y);
                 this.#fallStart = null;
 
                 if (fallHeight > 3)
@@ -115,7 +110,7 @@ class Player extends Entity
 
         if (Vector2.zero.Equals(input)) return;
 
-        const targetPos = Vector2.Add(this.#pos, input);
+        const targetPos = Vector2.Add(this.pos, input);
         const nextNode = ChunkLoader.GetNodeByPos(targetPos);
 
         if (nextNode == null || (input.y > 0 && this.tiles === 0)) return;
@@ -133,12 +128,12 @@ class Player extends Entity
         {
             this.tiles--;
             this.energy -= 0.025;
-            ChunkLoader.GetNodeByPos(this.#pos).SetTile("pu:dirt");
+            ChunkLoader.GetNodeByPos(this.pos).SetTile("pu:dirt");
         }
 
-        if (input.y < 0) targetPos.y = this.#pos.y;
+        if (input.y < 0) targetPos.y = this.pos.y;
 
-        this.#pos = targetPos;
+        this.pos = targetPos;
         this.#timer = this.#dependentDelay / this.speed;
 
         World.SetPlayer(this);
@@ -159,7 +154,7 @@ class Player extends Entity
     {
         this.transform.position = Vector2.Lerp(
             this.transform.position,
-            World.grid.CellToWorld(this.#pos),
+            World.grid.CellToWorld(this.pos),
             20 * Time.deltaTime
         );
     }

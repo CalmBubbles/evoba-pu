@@ -59,6 +59,26 @@ class PackLoader
 
         try
         {
+            const entitiesRequest = await FetchFile(`${src}\\entities\\manifest.json`);
+            const entities = await entitiesRequest.json();
+
+            let loadCount = 0;
+
+            for (let i = 0; i < entities.length; i++) (async () => {
+                const entityRequest = await FetchFile(`${src}\\entities\\${entities[i].src}.js`);
+                const entity = await entityRequest.text();
+
+                // TerrainBuilder.AddPass(terrainPass, manifestData.uuid);
+
+                loadCount++;
+            })();
+
+            await CrystalEngine.Wait(() => loadCount === entities.length);
+        }
+        catch { }
+
+        try
+        {
             const terrainRequest = await FetchFile(`${src}\\terrain\\manifest.json`);
             const terrain = await terrainRequest.json();
 

@@ -5,7 +5,9 @@
         "Test",
         "Init",
         "UserData",
-        "Entity",
+        "Entity/Entity",
+        "Entity/ScriptableEntity",
+        "Entity/EntityBank",
         "Player",
         "PackLoader",
         "World/TileBank",
@@ -29,10 +31,6 @@
         },
         {
             "name": "Player",
-            "type": 0
-        },
-        {
-            "name": "Entity",
             "type": 0
         },
         {

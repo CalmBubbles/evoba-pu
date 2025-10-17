@@ -7,9 +7,9 @@ class Init extends GameBehavior
         (async () => {
             await PackLoader.Set();
             await UserData.Load();
-            await SceneManager.Load(1);
+            // await SceneManager.Load(1);
 
-            this.#state = 1;
+            // this.#state = 1;
         })();
     }
 
