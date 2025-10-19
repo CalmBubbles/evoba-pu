@@ -65,7 +65,6 @@ class Player extends Entity
                 {
                     const dmg = Math.max((fallHeight - 3) * 2, 0);
                     this.hp -= dmg;
-                    Window.SetTitle(this.hp);
 
                     Cam.instance.Shake(
                         Math.Clamp(0.01 * dmg, 0.125, 0.5),
@@ -148,14 +147,5 @@ class Player extends Entity
             this.hp = Math.min(this.hp + 0.0625 * Time.deltaTime, this.maxHp);
             this.energy = Math.max(this.energy - 0.078125 * Time.deltaTime, 0);
         }
-    }
-
-    LateUpdate ()
-    {
-        this.transform.position = Vector2.Lerp(
-            this.transform.position,
-            World.grid.CellToWorld(this.pos),
-            20 * Time.deltaTime
-        );
     }
 }

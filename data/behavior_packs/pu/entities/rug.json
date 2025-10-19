@@ -1,8 +1,11 @@
 {
-    "id": "pu:rug",
+    "id": "pu:rock_bug",
     "movement": {
         "type": "pu:normal",
-        "stop_on_ledge": true
+        "stop_on_ledge": false
     },
-    "aggressiveness": 2
+    "aggressiveness": 0,
+    "animations": {
+        "idle": "pu:idle"
+    }
 }

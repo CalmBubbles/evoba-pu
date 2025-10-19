@@ -1,0 +1,16 @@
+{
+    "id": "pu:walk",
+    "loop": true,
+    "framerate": 3,
+    "duration": 2,
+    "frames": [
+        {
+            "index": 0,
+            "value": "walk-a"
+        },
+        {
+            "index": 1,
+            "value": "walk-b"
+        }
+    ]
+}

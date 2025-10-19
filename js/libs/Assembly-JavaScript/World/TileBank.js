@@ -5,27 +5,22 @@ class TileBank
     static Add (data, packUUID)
     {
         const existingTile = this.#tiles.find(item => item.id === data.id);
+        const behavior = {
+            pack: packUUID,
+            hardness: data.hardness,
+            blast_resistance: data.blast_resistance,
+        };
 
         if (existingTile != null)
         {
-            existingTile.behavior.push({
-                pack: packUUID,
-                hardness: data.hardness,
-                blast_resistance: data.blast_resistance,
-            });
+            existingTile.behavior.push(behavior);
 
             return;
         }
 
         this.#tiles.push({
             id: data.id,
-            behavior: [
-                {
-                    pack: packUUID,
-                    hardness: data.hardness,
-                    blast_resistance: data.blast_resistance,
-                }
-            ],
+            behavior: [behavior],
             texture: []
         });
     }
@@ -48,7 +43,7 @@ class TileBank
         const tile = this.#tiles.find(item => item.id === id);
 
         let output = {
-            id: tile.id,
+            id: id,
             hardness: 1,
             blast_resistance: 1,
             texture: tile.texture[tile.texture.length - 1].texture

@@ -41,13 +41,10 @@ class PackLoader
 
             let loadCount = 0;
 
-            manifestData.tiles = [];
-
             for (let i = 0; i < tiles.length; i++) (async () => {
                 const tileRequest = await FetchFile(`${src}\\tiles\\${tiles[i]}.json`);
                 const tileData = await tileRequest.json();
 
-                manifestData.tiles.push(tileData.id);
                 TileBank.Add(tileData, manifestData.uuid);
 
                 loadCount++;
@@ -65,10 +62,10 @@ class PackLoader
             let loadCount = 0;
 
             for (let i = 0; i < entities.length; i++) (async () => {
-                const entityRequest = await FetchFile(`${src}\\entities\\${entities[i].src}.js`);
-                const entity = await entityRequest.text();
+                const entityRequest = await FetchFile(`${src}\\entities\\${entities[i]}.json`);
+                const entity = await entityRequest.json();
 
-                // TerrainBuilder.AddPass(terrainPass, manifestData.uuid);
+                EntityBank.Add(entity, manifestData.uuid);
 
                 loadCount++;
             })();
@@ -79,13 +76,13 @@ class PackLoader
 
         try
         {
-            const terrainRequest = await FetchFile(`${src}\\terrain\\manifest.json`);
+            const terrainRequest = await FetchFile(`${src}\\scripts\\terrain\\manifest.json`);
             const terrain = await terrainRequest.json();
 
             let loadCount = 0;
 
             for (let i = 0; i < terrain.length; i++) (async () => {
-                const terrainPassRequest = await FetchFile(`${src}\\terrain\\${terrain[i]}.js`);
+                const terrainPassRequest = await FetchFile(`${src}\\scripts\\terrain\\${terrain[i]}.js`);
                 const terrainPass = await terrainPassRequest.text();
 
                 TerrainBuilder.AddPass(terrainPass, manifestData.uuid);
@@ -114,15 +111,71 @@ class PackLoader
 
             let loadCount = 0;
 
-            manifestData.tiles = [];
-
             for (let i = 0; i < tiles.length; i++) (async () => {
                 const texture = new Texture(tiles[i].src, `${src}\\tiles\\`);
                 await texture.Load();
                 texture.pixelPerUnit = Math.max(texture.width, texture.height);
 
-                manifestData.tiles.push(tiles[i].id);
                 TileBank.AddTexture(tiles[i].id, texture, manifestData.uuid);
+
+                loadCount++;
+            })();
+
+            await CrystalEngine.Wait(() => loadCount === tiles.length);
+        }
+        catch { }
+
+        try
+        {
+            const entitiesRequest = await FetchFile(`${src}\\entities\\manifest.json`);
+            const entities = await entitiesRequest.json();
+
+            let loadCount = 0;
+
+            for (let i = 0; i < entities.length; i++) (async () => {
+                const entityRequest = await fetch(`${src}\\entities\\${entities[i]}.json`);
+                const entityData = await entityRequest.json();
+
+                const texture = new Texture(entityData.src, `${src}\\entities\\textures\\`);
+                await texture.Load();
+                texture.pixelPerUnit = entityData.pixelPerUnit ?? 10;
+
+                let sprites = [];
+
+                for (let i = 0; i < entityData.sprites.length; i++)
+                {
+                    const sprLibCategory = new SpriteLibraryCategory();
+                    sprLibCategory.name = entityData.sprites[i].dir;
+                    
+                    for (let j = 0; j < entityData.sprites[i].entries.length; j++)
+                    {
+                        const spriteData = entityData.sprites[i].entries[j];
+                        const sprite = new Sprite(spriteData.name, texture);
+
+                        if (spriteData.pivot != null) sprite.pivot = new Vector2(
+                            spriteData.pivot.x,
+                            spriteData.pivot.y
+                        );
+                        if (spriteData.rect != null) sprite.rect = new Rect(
+                            spriteData.rect.x,
+                            spriteData.rect.y,
+                            spriteData.rect.width,
+                            spriteData.rect.height
+                        );
+                        if (spriteData.border != null) sprite.border = new Rect(
+                            spriteData.rect.x,
+                            spriteData.rect.y,
+                            spriteData.rect.z,
+                            spriteData.rect.w
+                        );
+
+                        sprLibCategory.entries.push(sprite);
+                    }
+
+                    sprites.push(sprLibCategory);
+                }
+
+                EntityBank.AddSprites(entityData.id, sprites, manifestData.uuid);
 
                 loadCount++;
             })();

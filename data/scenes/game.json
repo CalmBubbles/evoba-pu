@@ -61,7 +61,8 @@
                         "sprite": {
                             "texture": "pu"
                         },
-                        "sortingOrder": 1
+                        "sortingOrder": 1,
+                        "sortingLayer": 2
                     }
                 },
                 {

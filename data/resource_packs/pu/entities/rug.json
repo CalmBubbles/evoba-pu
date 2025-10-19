@@ -1,0 +1,63 @@
+{
+    "id": "pu:rock_bug",
+    "src": "rug.png",
+    "sprites": [
+        {
+            "dir": "left",
+            "entries": [
+                {
+                    "name": "idle",
+                    "rect": {
+                        "width": 12,
+                        "height": 12
+                    }
+                },
+                {
+                    "name": "walk-a",
+                    "rect": {
+                        "width": 12,
+                        "height": 12
+                    }
+                },
+                {
+                    "name": "walk-b",
+                    "rect": {
+                        "width": 12,
+                        "height": 12,
+                        "x": 12
+                    }
+                }
+            ]
+        },
+        {
+            "dir": "right",
+            "entries": [
+                {
+                    "name": "idle",
+                    "rect": {
+                        "width": 12,
+                        "height": 12,
+                        "y": 12
+                    }
+                },
+                {
+                    "name": "walk-a",
+                    "rect": {
+                        "width": 12,
+                        "height": 12,
+                        "y": 12
+                    }
+                },
+                {
+                    "name": "walk-b",
+                    "rect": {
+                        "width": 12,
+                        "height": 12,
+                        "x": 12,
+                        "y": 12
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "id": "pu:idle",
+    "loop": true,
+    "framerate": 3,
+    "duration": 0,
+    "frames": [
+        {
+            "index": 0,
+            "value": "idle"
+        }
+    ]
+}

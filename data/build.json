@@ -49,6 +49,11 @@
             "name": "UI",
             "id": 1,
             "value": 2
+        },
+        {
+            "name": "Entities",
+            "id": 2,
+            "value": 1
         }
     ]
 }

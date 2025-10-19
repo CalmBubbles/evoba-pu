@@ -1,11 +1,3 @@
 [
-    {
-        "id": "pu:rock_bug",
-        "src": "rug.png",
-        "sprites": [
-            {
-                
-            }
-        ]
-    }
+    "rug"
 ]

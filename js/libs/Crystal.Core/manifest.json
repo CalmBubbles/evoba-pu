@@ -209,6 +209,10 @@
                 {
                     "name" : "rect",
                     "type" : "Rect"
+                },
+                {
+                    "name" : "border",
+                    "type" : "Vector4"
                 }
             ]
         },

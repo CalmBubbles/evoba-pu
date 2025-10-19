@@ -5,4 +5,13 @@ class Entity extends GameBehavior
     strength = 1;
     speed = 1;
     pos = Vector2.zero;
+
+    LateUpdate ()
+    {
+        this.transform.position = Vector2.Lerp(
+            this.transform.position,
+            World.grid.CellToWorld(this.pos),
+            20 * Time.deltaTime
+        );
+    }
 }

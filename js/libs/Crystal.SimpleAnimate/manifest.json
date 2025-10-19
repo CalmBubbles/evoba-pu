@@ -1,0 +1,189 @@
+{
+    "name" : "Crystal.SimpleAnimate",
+    "id": "com.crystal.simpleanimate",
+    "description" : "Adds a simple animation system",
+    "version": "2025.4f",
+    "scripts" : [
+        "AnimationFrame",
+        "AnimationClip",
+        "AnimatorNode",
+        "AnimatorMotion",
+        "AnimatorConditionMode",
+        "AnimatorCondition",
+        "AnimatorControllerParameterType",
+        "AnimatorControllerParameter",
+        "AnimatorTransition",
+        "AnimatorController",
+        "Animator"
+    ],
+    "classes" : [
+        {
+            "name": "AnimationFrame",
+            "type": 0,
+            "args": [
+                {
+                    "type" : "number",
+                    "name" : "index"
+                },
+                {
+                    "type" : "object",
+                    "array": true,
+                    "name" : "actions"
+                }
+            ]
+        },
+        {
+            "name" : "AnimationClip",
+            "type" : 1,
+            "args" : [
+                {
+                    "type": "AnimationFrame",
+                    "array": true,
+                    "name": "frames"
+                },
+                {
+                    "type" : "bool",
+                    "name" : "loop"
+                },
+                {
+                    "type" : "number",
+                    "name" : "framerate"
+                },
+                {
+                    "type" : "number",
+                    "name" : "duration"
+                }
+            ]
+        },
+        {
+            "name" : "AnimationClip",
+            "type" : 0,
+            "construction": "return Resources.Find(data)"
+        },
+        {
+            "name" : "Animator",
+            "type" : 0,
+            "args": [
+                {
+                    "type": "AnimatorController",
+                    "name": "controller"
+                }
+            ]
+        },
+        {
+            "name": "AnimatorTransition",
+            "type": 0,
+            "args": [
+                {
+                    "type": "AnimatorCondition",
+                    "array": true,
+                    "name": "conditions"
+                },
+                {
+                    "type": "bool",
+                    "name": "isExit"
+                },
+                {
+                    "type": "number",
+                    "name": "exitTime"
+                },
+                {
+                    "type": "string",
+                    "name": "nextNode"
+                }
+            ]
+        },
+        {
+            "name": "AnimatorMotion",
+            "type": 0,
+            "args": [
+                {
+                    "type": "AnimatorTransition",
+                    "array": true,
+                    "name": "transitions"
+                },
+                {
+                    "type": "number",
+                    "name": "speed"
+                },
+                {
+                    "type": "string",
+                    "name": "name"
+                },
+                {
+                    "type": "bool",
+                    "name": "reversed"
+                },
+                {
+                    "type": "AnimationClip",
+                    "name": "animation"
+                }
+            ]
+        },
+        {
+            "name": "AnimatorController",
+            "type": 1,
+            "construction": "const output = new AnimatorController(); for (let i = 0; i < data.motions?.length; i++) output.nodes.push(await toObject(\"AnimatorMotion\", data.motions[i])); return output;",
+            "args": [
+                {
+                    "type": "AnimatorControllerParameter",
+                    "array": true,
+                    "name": "parameters"
+                }
+            ],
+            "keys": [
+                {
+                    "type": "AnimatorMotion",
+                    "array": true,
+                    "name": "motions",
+                    "realName": "nodes"
+                }
+            ]
+        },
+        {
+            "name" : "AnimatorController",
+            "type" : 0,
+            "construction": "return Resources.Find(data).Duplicate()"
+        },
+        {
+            "name": "AnimatorCondition",
+            "type": 0,
+            "args": [
+                {
+                    "type": "number",
+                    "name": "threshold"
+                },
+                {
+                    "type": "number",
+                    "name": "mode"
+                },
+                {
+                    "type": "string",
+                    "name": "parameter"
+                }
+            ]
+        },
+        {
+            "name": "AnimatorControllerParameter",
+            "type": 0,
+            "args": [
+                {
+                    "type": "string",
+                    "name": "name"
+                },
+                {
+                    "type": "bool",
+                    "name": "defaultBool"
+                },
+                {
+                    "type": "number",
+                    "name": "defaultNumber"
+                },
+                {
+                    "type": "number",
+                    "name": "type"
+                }
+            ]
+        }
+    ]
+} 
