@@ -62,11 +62,12 @@
         },
         {
             "name" : "Animator",
+            "construction": "return new Animator(await toObject(\"AnimatorController\", data.controller))",
             "type" : 0,
             "args": [
                 {
-                    "type": "AnimatorController",
-                    "name": "controller"
+                    "type": "number",
+                    "name": "speed"
                 }
             ]
         },

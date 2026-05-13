@@ -106,5 +106,20 @@
                 }
             ]
         }
+    },
+    {
+        "path": "chunk",
+        "type": "GameObject",
+        "args": {
+            "name": "chunk",
+            "components": [
+                {
+                    "type": "Tilemap",
+                    "args": {
+                        "merged": false
+                    }
+                }
+            ]
+        }
     }
 ]

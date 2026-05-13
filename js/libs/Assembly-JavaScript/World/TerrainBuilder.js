@@ -13,7 +13,7 @@ class TerrainBuilder
             output = evalCall(pos, output);
         }
 
-        return output ?? "pu:air";
+        return output ?? new GameTile("pu:air");
     }
 
     static AddPass (callback, packUUID)
@@ -39,7 +39,7 @@ class TerrainBuilder
         
         for (let i = 0; i < 170; i++)
         {
-            chunk.data[i] = this.#Pass(new Vector2(x, y));
+            chunk.tiles[i] = this.#Pass(new Vector2(x, y));
 
             if ((1 + i) % 17 === 0)
             {

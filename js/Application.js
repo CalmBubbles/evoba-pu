@@ -132,7 +132,7 @@ class Application
             this.#focusedCall = () => focused;
 
             document.addEventListener("pause", () => focused = false);
-            document.addEventListener("resume", () => focused = true);
+            document.addEventListener("resume", () => setTimeout(() => focused = true, 0));
         }
 
         if (navigator.userAgent.indexOf("Electron") >= 0)
@@ -206,7 +206,7 @@ class Application
     {
         if (this.#unloaded) return;
 
-        try { this.unloading.Invoke(); }
+        try { await this.unloading.AsyncInvoke(); }
         catch { }
 
         await this.#onUnload();

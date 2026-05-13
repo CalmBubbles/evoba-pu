@@ -15,7 +15,7 @@ class SpriteResolver extends GameBehavior
 
         if (value) return;
 
-        this.#sprRen.sprite = this.#ogSpr.Duplicate();
+        this.#sprRen.sprite = this.#ogSpr;
 
         this.#lastCategory = null;
         this.#lastLabel = null;
@@ -26,11 +26,11 @@ class SpriteResolver extends GameBehavior
         return super.enabled;
     }
 
-    Start ()
+    Awake ()
     {
-        this.#sprRen = this.GetComponent("SpriteRenderer");
-        this.#ogSpr = this.#sprRen.sprite.Duplicate();
-        this.#lib = this.GetComponent("SpriteLibrary");
+        this.#sprRen = this.GetComponent(SpriteRenderer);
+        this.#ogSpr = this.#sprRen.sprite;
+        this.#lib = this.GetComponent(SpriteLibrary);
     }
 
     Update ()
@@ -38,6 +38,11 @@ class SpriteResolver extends GameBehavior
         if (this.#lastCategory === this.category && this.#lastLabel === this.label) return;
         if (this.category == null || this.label == null) return;
 
+        this.Reload();
+    }
+
+    Reload ()
+    {
         this.#sprRen.sprite = this.#lib.GetSprite(this.category, this.label);
 
         this.#lastCategory = this.category;

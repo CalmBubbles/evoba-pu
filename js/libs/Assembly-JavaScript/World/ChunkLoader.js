@@ -2,22 +2,27 @@ class ChunkLoader
 {
     static #chunks = new Map();
 
-    static Load (chunk)
+    static async Load (chunk)
     {
-        let objID = 0;
+        const gameObj = await this.Instantiate(
+            Resources.FindPrefab("chunk"),
+            World.grid.transform,
+            null, null, true
+        );
+        gameObj.name = `chunk_${chunk.pos.x}_${chunk.pos.y}`
+        chunk.gameObject = gameObj;
 
-        while (GameObject.FindByID(objID) != null) objID++;
-
-        const tilemap = new Tilemap();
-        tilemap.grid = World.grid;
+        const tilemap = gameObj.GetComponent(Tilemap);
+        chunk.tilemap = tilemap;
 
         let x = -8 + chunk.pos.x * 17;
         let y = 9 + chunk.pos.y * 10;
         
-        for (let i = 0; i < chunk.data.length; i++)
+        for (let i = 0; i < chunk.tiles.length; i++)
         {
-            if (chunk.data[i] !== "pu:air") tilemap.AddTile(new Tile(
-                chunk.data[i],
+            if (chunk.tiles[i].id !== "pu:air") tilemap.AddTile(new Tile(
+                "tiles",
+                chunk.tiles[i].id,
                 new Vector2(x, y)
             ));
 
@@ -26,7 +31,7 @@ class ChunkLoader
             newNode.y = y;
             newNode.chunk = chunk;
             
-            if (chunk.data[i] !== "pu:air") newNode.owner = TileBank.GetTileInfo(chunk.data[i]);
+            if (chunk.tiles[i].id !== "pu:air") newNode.AddOwner(chunk.tiles[i]);
 
             chunk.nodes.push(newNode);
 
@@ -40,35 +45,8 @@ class ChunkLoader
 
             x++;
         }
-
-        const transform = new Transform();
-
-        const gameObj = new GameObject(
-            `chunk_${chunk.pos.x}_${chunk.pos.y}`,
-            [tilemap],
-            true,
-            transform,
-            objID
-        );
         
-        chunk.tilemap = tilemap;
-        chunk.gameObject = gameObj;
         this.#chunks.set(`${chunk.pos.x}_${chunk.pos.y}`, chunk);
-
-        const scene = SceneManager.GetActiveScene();
-        gameObj.scene = scene;
-
-        Object.InstantiationQueue.Add(() => {
-            const min = tilemap.bounds.min;
-            const max = tilemap.bounds.max;
-            const rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
-        
-            scene.tree.Insert(gameObj, rect);
-
-            scene.gameObjects.push(gameObj);
-
-            World.grid.transform.AttachChild(transform);
-        });
     }
 
     static WorldToChunkPos (pos)

@@ -1,6 +1,6 @@
 class Chunk
 {
-    data = [];
+    tiles = [];
     nodes = [];
     pos = Vector2.zero;
 
@@ -30,28 +30,29 @@ class Chunk
 
     RemoveTile (node)
     {
-        this.tilemap.RemoveTileByPosition(node.pos);
+        this.tilemap.RemoveTile(node.pos);
 
-        node.owner = null;
-        this.data[this.nodes.indexOf(node)] = "pu:air";
+        node.RemoveOwnerOfType(GameTile);
+        this.tiles[this.nodes.indexOf(node)] = new GameTile("pu:air");
         
         World.SetChunk(this);
     }
 
-    SetTile (node, tileID)
+    SetTile (node, tile)
     {
-        if (tileID === "pu:air")
+        if (tile.id === "pu:air")
         {
             this.RemoveTile(node);
 
             return;
         }
 
-        node.owner = tileID;
-        this.data[this.nodes.indexOf(node)] = tileID;
+        node.AddOwner(tile);
+        this.tiles[this.nodes.indexOf(node)] = tile;
 
         this.tilemap.AddTile(new Tile(
-            tileID,
+            "tiles",
+            tile.id,
             node.pos
         ));
 

@@ -122,6 +122,7 @@ class PackLoader
             })();
 
             await CrystalEngine.Wait(() => loadCount === tiles.length);
+
         }
         catch { }
 

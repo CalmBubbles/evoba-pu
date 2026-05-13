@@ -2,16 +2,25 @@
     "name" : "Crystal.RPGTiles",
     "id": "com.crystal.rpgtiles",
     "description" : "Adds fast tiles and tilemap rendering",
-    "version": "2025.5.1f - pu modified",
+    "version": "2025.5f",
     "scripts" : [
+        "TilePalette",
         "Tile",
-        "Tilemap"
+        "Tilemap",
+        "TilemapMerger"
+    ],
+    "preserve": [
+        "MergeWorker.js"
     ],
     "classes" : [
         {
             "name" : "Tile",
             "type" : 0,
             "args" : [
+                {
+                    "type": "string",
+                    "name": "palette"
+                },
                 {
                     "type" : "number",
                     "name" : "spriteID"
@@ -25,7 +34,7 @@
         {
             "name" : "Tilemap",
             "type" : 0,
-            "construction" : "const output = new Tilemap(await toObject(\"Material\", data.material)); for (let i = 0; i < data.tiles?.length ?? 0; i++) { for (let j = 0; j < data.tiles[i].sprites.length; j++) { const sprite = data.tiles[i].sprites[j]; for (let k = 0; k < sprite.coords.length; k++) output.AddTile(await toObject(\"Tile\", { spriteID: sprite.id, position: sprite.coords[k] })); } } if (data.merged ?? false) output.Merge(); return output;",
+            "construction" : "const output = new Tilemap(await toObject(\"Material\", data.material)); for (let i = 0; i < data.tiles?.length ?? 0; i++) { for (let j = 0; j < data.tiles[i].sprites.length; j++) { const sprite = data.tiles[i].sprites[j]; for (let k = 0; k < sprite.coords.length; k++) output.AddTile(await toObject(\"Tile\", { palette: data.tiles[i].palette, spriteID: sprite.id, position: sprite.coords[k] })); } } if (data.merged ?? true) output.Merge(); return output;",
             "args" : [
                 {
                     "name" : "color",
@@ -42,6 +51,10 @@
                 {
                     "name" : "mergeResolution",
                     "type" : "number"
+                },
+                {
+                    "name" : "sortingAxisOffset",
+                    "type" : "Vector2"
                 }
             ],
             "keys": [

@@ -82,7 +82,8 @@ class CrystalEngine
                 return;
             }
     
-            requestAnimationFrame(loop.bind(this, callback));
+            if (scheduler != null) scheduler.postTask(loop.bind(this, callback));
+            else setTimeout(loop.bind(this, callback), 0);
         };
     
         await new Promise(resolve => loop(resolve));
@@ -121,7 +122,8 @@ class CrystalEngine
             #deps = [];
             #unloadedScripts = [];
             #scripts = [];
-            #classes = [];
+            #unloadedClasses = [];
+            #classes = new Map();
             
             #src = null;
             
@@ -157,7 +159,7 @@ class CrystalEngine
             
             get classes ()
             {
-                return this.#classes;
+                return Array.from(this.#classes).map(item => item[1]);;
             }
 
             get deps ()
@@ -172,7 +174,7 @@ class CrystalEngine
                 this.#desc = desc ?? "";
                 this.#ver = ver;
                 this.#unloadedScripts = scripts;
-                this.#classes = classes ?? [];
+                this.#unloadedClasses = classes ?? [];
                 this.#src = src;
                 this.#deps = deps ?? [];
             }
@@ -210,71 +212,73 @@ class CrystalEngine
                     this.#scripts.push(script);
                 }
                 
-                let newClasses = [];
-                
-                for (let i = 0; i < this.#classes.length; i++)
+                for (let i = 0; i < this.#unloadedClasses.length; i++)
                 {
-                    if (this.#classes[i].name == null) continue;
+                    const classs = this.#unloadedClasses[i];
 
-                    if (this.#classes[i].args == null) this.#classes[i].args = [];
-                    if (this.#classes[i].keys == null) this.#classes[i].keys = [];
+                    if (classs.type == null || classs.name == null) continue;
 
-                    if (this.#classes[i].type === 0 && CrystalEngine.IsBehavior(this.#classes[i].name)) this.#classes[i].args.push({
-                        type: "boolean",
+                    if (classs.args == null) classs.args = [];
+                    if (classs.keys == null) classs.keys = [];
+
+                    if (classs.type === 0 && CrystalEngine.IsBehavior(classs.name)) classs.args.push({
+                        type: "bool",
                         name: "enabled"
                     });
                     
-                    newClasses.push(this.#classes[i]);
+                    this.#classes.set(`${classs.type}+${classs.name}`, classs);
                 }
                 
-                this.#classes = newClasses;
-                
                 this.#loaded = true;
+            }
+
+            GetClassOfType (name, type)
+            {
+                return this.#classes.get(`${type}+${name}`);
             }
         }
         
         static #Script = class extends CrystalEngine.Script
         {
-            #classes = [];
+            #unloadedClasses = [];
+            #classes = new Map();
             
             get classes ()
             {
-                return this.#classes;
+                return Array.from(this.#classes).map(item => item[1]);
             }
             
             constructor (src, classes)
             {
                 super(src);
                 
-                this.#classes = classes ?? [];
+                this.#unloadedClasses = classes ?? [];
             }
             
             OnLoad ()
-            {
-                let newClasses = [];
-                
-                for (let i = 0; i < this.#classes.length; i++)
+            {   
+                for (let i = 0; i < this.#unloadedClasses.length; i++)
                 {
-                    if (this.#classes[i].name == null) continue;
+                    const classs = this.#unloadedClasses[i];
 
-                    if (this.#classes[i].args == null) this.#classes[i].args = [];
-                    if (this.#classes[i].keys == null) this.#classes[i].keys = [];
+                    if (classs.type == null || classs.name == null) continue;
 
-                    if (this.#classes[i].type === 0 && CrystalEngine.IsBehavior(this.#classes[i].name)) this.#classes[i].args.push({
-                        type: "boolean",
+                    if (classs.args == null) classs.args = [];
+                    if (classs.keys == null) classs.keys = [];
+
+                    if (classs.type === 0 && CrystalEngine.IsBehavior(classs.name)) classs.args.push({
+                        type: "bool",
                         name: "enabled"
                     });
                     
-                    newClasses.push(this.#classes[i]);
+                    this.#classes.set(`${classs.type}+${classs.name}`, classs);
                 }
-                
-                this.#classes = newClasses;
             }
-        }
-        
-        static #IsClassOfType (item, name, type)
-        {
-            return item.name === name && item.type === type;
+
+            GetClassOfType (name, type)
+            {
+                return this.#classes.get(`${type}+${name}`);
+            }
         }
         
         static GetClassOfType (name, type)
@@ -283,10 +287,10 @@ class CrystalEngine
             const scripts = this.#compiledData.scripts;
             
             let output = null;
-            
-            for (let i = 0; i < libs.length; i++)
-            {
-                const currentClass = libs[i].classes.find(element => this.#IsClassOfType(element, name, type));
+
+            for (let i = 0; i < scripts.length; i++)
+            {   
+                const currentClass = scripts[i].GetClassOfType(name, type);
                 
                 if (currentClass == null) continue;
                 
@@ -295,11 +299,11 @@ class CrystalEngine
                 break;
             }
             
-            for (let i = 0; i < scripts.length; i++)
+            for (let i = 0; i < libs.length; i++)
             {
                 if (output != null) break;
-                
-                const currentClass = scripts[i].classes.find(element => this.#IsClassOfType(element, name, type));
+
+                const currentClass = libs[i].GetClassOfType(name, type);
                 
                 if (currentClass == null) continue;
                 
@@ -325,10 +329,20 @@ class CrystalEngine
             
             let errLogs = null;
 
+            const splashTexts = [
+                "RIP",
+                "Well that's unfortunate",
+                "Task successfully failed!",
+                ":c",
+                "Reason: an error has occurred",
+                "JARVIS, CLIP THAT!",
+                "Stay calm...",
+                "I have not been tamed."
+            ];
             const onError = error => {
                 if (this.#terminateStart)
                 {
-                    errLogs.append(`\n\n${error.stack}`);
+                    errLogs.append(`\n\n${error?.stack ?? "Unidentified error :("}`);
                     
                     return;
                 }
@@ -338,7 +352,6 @@ class CrystalEngine
                 if (Application.isLoaded)
                 {
                     PlayerLoop.OnError();
-
                     Application.Unload();
                 }
                 else Application.htmlCanvas.style.display = "none";
@@ -346,7 +359,11 @@ class CrystalEngine
                 document.body.style.height = "";
                 document.body.style.overflow = "";
 
-                Window.resizable = true;
+                GameWindow.resizable = true;
+                GameWindow.fullscreen = false;
+
+                Cursor.locked = false;
+                Cursor.visible = true;
                 
                 const errWrap = document.createElement("div");
                 errWrap.style.whiteSpace = "pre";
@@ -355,12 +372,96 @@ class CrystalEngine
 
                 errLogs = document.createElement("span");
                 errLogs.style.userSelect = "text";
-                errLogs.append(error.stack);
+
+                errLogs.append(`ERROR ENCOUNTERED\n\n${splashTexts[Math.floor(Math.random() * splashTexts.length)]}`);
+                errLogs.append(`\n\nCrystal ${Application.engineVersion}\n\n${Application.name}\nVersion: ${Application.version}`);
+
+                if (SceneManager != null)
+                {
+                    const activeScene = SceneManager.GetActiveScene();
+                    if (activeScene != null && activeScene !== SceneManager.$emptyScene)
+                    {
+                        errLogs.append(`\nScene: ${activeScene.index} | "${activeScene.name}"`);
+
+                        if (activeScene.path != null) errLogs.append(` | "${activeScene.path}"`);
+                    }
+                }
+
+                errLogs.append("\n\n");
+                errLogs.append(error?.stack ?? "Unidentified error :(");
                 
-                const tip = document.createElement("span");
-                tip.append(`\n\n\n----------\n\nPlease report this problem`);
+                const copy = document.createElement("span");
+                copy.textContent = "Copy to clipboard";
+                copy.style.textDecoration = "underline";
+                copy.style.fontWeight = "bold";
+                copy.style.cursor = "copy";
+
+                let copying = false;
+
+                copy.ontouchstart = () => {
+                    if (copying) return;
+
+                    copy.style.textDecoration = "";
+                    copy.style.opacity = "0.25";
+                };
+                copy.ontouchmove = copy.ontouchstart;
+                copy.ontouchend = () => {
+                    if (copying) return;
+
+                    copy.style.textDecoration = "underline";
+                    copy.style.opacity = "";
+                };
+                copy.onmousemove = () => {
+                    if (copying) return;
+
+                    copy.style.textDecoration = "";
+                    copy.style.opacity = "0.5";
+                };
+                copy.onmouseleave = () => {
+                    if (copying) return;
+
+                    copy.style.textDecoration = "underline";
+                    copy.style.opacity = "";
+                };
+                copy.onclick = async () => {
+                    if (copying) return;
+                    copying = true;
+
+                    copy.textContent = "Copying...";
+                    copy.style.textDecoration = "";
+                    copy.style.opacity = "";
+                    copy.style.cursor = "";
+
+                    let copied = false;
+
+                    try
+                    {
+                        await navigator.clipboard.writeText(errLogs.innerText);
+                        copied = true;
+                    }
+                    catch { }
+
+                    const targetTime = performance.now() + 1000;
+                    await CrystalEngine.Wait(() => {
+                        const time = targetTime - performance.now();
+                        copy.textContent = `${copied ? "Copied" : "Copy failed :("} (${(1e-3 * time).toFixed(2)}s)`;
+
+                        return time <= 0;
+                    });
+
+                    copy.textContent = "Copy to clipboard";
+                    copy.style.textDecoration = "underline";
+                    copy.style.cursor = "copy";
+
+                    copying = false;
+                };
                 
-                errWrap.append(errLogs, tip)
+                errWrap.append(
+                    errLogs,
+                    `\n\n\n------------------------------\n\n`,
+                    copy,
+                    "\n\nPlease report this problem"
+                )
                 document.body.append(errWrap);
             };
             
@@ -387,7 +488,7 @@ class CrystalEngine
                     manifestData.developer,
                     manifestData.version
                 );
-                Window.Init(manifestData.window);
+                GameWindow.Init(manifestData.window);
 
                 inited = true;
             })();
@@ -465,22 +566,21 @@ class CrystalEngine
             const libCount = this.#compiledData.libs.length;
             let libIndex = 0;
 
-            for (let i = 0; i < libCount; i++) (async () => {
-                const deps = this.#compiledData.libs[i].deps;
+            const loadLib = async lib => {
                 let loadCount = 0;
 
-                for (let i = 0; i < deps.length; i++) (async () => {
-                    const lib = this.#compiledData.libs.find(item => item.id === deps[i]);
-
-                    await lib.Load();
-
+                for (let i = 0; i < lib.deps.length; i++) (async () => {
+                    await loadLib(this.#compiledData.libs.find(item => item.id === lib.deps[i]));
                     loadCount++;
                 })();
 
-                await CrystalEngine.Wait(() => loadCount === deps.length);
+                await CrystalEngine.Wait(() => loadCount === lib.deps.length);
 
-                await this.#compiledData.libs[i].Load();
+                await lib.Load();
+            };
 
+            for (let i = 0; i < libCount; i++) (async () => {
+                await loadLib(this.#compiledData.libs[i]);
                 libIndex++;
             })();
             
@@ -522,6 +622,8 @@ class CrystalEngine
 
             SortingLayer.Add(this.#buildData.layers);
             SceneManager.Set(this.#buildData.scenes);
+
+            Camera.sortingAxis = await SceneManager.CreateObject("Vector2", this.#buildData.sortingAxis);
 
             if (this.#terminateStart) return;
 

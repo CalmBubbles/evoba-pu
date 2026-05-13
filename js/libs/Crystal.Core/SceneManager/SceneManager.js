@@ -6,12 +6,19 @@ class SceneManager
     static #emptyScene = new Scene();
     static #unloadedScenes = [];
     static #scenes = [];
+    static #keptObjs = [];
+    static #loadingRes = [];
     
     static #activeScene = null;
 
     static sceneLoaded = new DelegateEvent();
     static sceneUnloaded = new DelegateEvent();
     static activeSceneChanged = new DelegateEvent();
+
+    static get $emptyScene ()
+    {
+        return this.#emptyScene;
+    }
 
     static get sceneCount ()
     {
@@ -37,19 +44,8 @@ class SceneManager
         const prevScene = this.#activeScene;
         const prevSceneID = this.#activeScene?.index;
 
-        let keepOnLoad = [];
-
         if (prevScene != null)
         {
-            keepOnLoad = prevScene.gameObjects.filter(item => item.keepOnLoad);
-
-            for (let i = 0; i < keepOnLoad.length; i++)
-            {
-                const index = prevScene.gameObjects.indexOf(keepOnLoad[i]);
-
-                prevScene.gameObjects.splice(index, 1);
-            }
-
             await this.Unload(prevSceneID);
 
             if (prevSceneID === index)
@@ -64,11 +60,11 @@ class SceneManager
 
         await scene.LoadComponents();
 
-        for (let i = 0; i < keepOnLoad.length; i++)
+        for (let i = 0; i < this.#keptObjs.length; i++)
         {
-            prevScene?.tree.Remove(keepOnLoad[i]);
+            prevScene?.tree.Remove(this.#keptObjs[i]);
 
-            const renderer = keepOnLoad[i].GetComponent("Renderer");
+            const renderer = this.#keptObjs[i].GetComponent(Renderer);
 
             if (renderer != null)
             {
@@ -76,13 +72,15 @@ class SceneManager
                 const max = renderer.bounds.max;
                 const rect = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
 
-                this.#activeScene.tree.Insert(keepOnLoad[i], rect);
+                this.#activeScene.tree.Insert(this.#keptObjs[i], rect);
             }
 
-            keepOnLoad[i].scene = this.#activeScene;
+            this.#keptObjs[i].scene = this.#activeScene;
 
-            this.#activeScene.gameObjects.push(keepOnLoad[i]);
+            this.#activeScene.gameObjects.push(this.#keptObjs[i]);
         }
+
+        this.#keptObjs = [];
 
         this.#activePersistent = true;
 
@@ -132,6 +130,18 @@ class SceneManager
         {
             if (this.GetActiveScene().index === index[i])
             {
+                await CrystalEngine.Wait(() => Object.InstantiationCount === 0);
+
+                this.#keptObjs = this.#activeScene.gameObjects.filter(item => item.keepOnLoad);
+
+                for (let i = 0; i < this.#keptObjs.length; i++)
+                {
+                    if (!this.#keptObjs[i].transform.parent?.gameObject.keepOnLoad) this.#keptObjs[i].transform.parent = null;
+
+                    const index = this.#activeScene.gameObjects.indexOf(this.#keptObjs[i]);
+                    this.#activeScene.gameObjects.splice(index, 1);
+                }
+
                 this.#activePersistent = false;
                 this.#active = false;
 
@@ -146,7 +156,21 @@ class SceneManager
 
             if (scene.isInvalid) continue;
 
-            const resources = scene.resourceList.filter(item => !Resources.keepOnLoad.includes(item) && (this.#scenes.find(subItem => subItem.index !== index[i] && subItem.resourceList.find(resItem => resItem === item) != null)) == null);
+            let globalResList = [
+                ...Resources.keepOnLoad,
+                ...this.#loadingRes
+            ];
+
+            for (let j = 0; j < this.#scenes.length; j++)
+            {
+                const scene = this.#scenes[j];
+
+                if (scene.index === index[i]) continue;
+                
+                globalResList.push(...scene.resourceList);
+            }
+
+            const resources = scene.resourceList.filter(item => !globalResList.includes(item));
             Resources.Unload(...resources);
 
             const itemIndex = this.#scenes.indexOf(scene);
@@ -178,6 +202,7 @@ class SceneManager
             let loadCount = 0;
 
             (async () => {
+                this.#loadingRes.push(...scene.resourceList);
                 await Resources.Load(...scene.resources);
                 loadCount++;
             })();
@@ -188,6 +213,8 @@ class SceneManager
             })();
 
             await CrystalEngine.Wait(() => loadCount === 2);
+
+            for (let i = 0; i < scene.resourceList.length; i++) this.#loadingRes.splice(this.#loadingRes.indexOf(scene.resourceList[i]), 1);
 
             this.#scenes.push(scene);
 

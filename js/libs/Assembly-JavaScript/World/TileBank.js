@@ -78,4 +78,18 @@ class TileBank
         const texture = tile.texture.find(item => item.pack === packUUID);
         if (texture != null) tile.texture.splice(tile.texture.indexOf(texture), 1);
     }
+
+    static LoadTextures ()
+    {
+        const palette = new TilePalette();
+        palette.name = "tiles";
+
+        for (let i = 0; i < this.#tiles.length; i++)
+        {
+            const sprite = this.#tiles[i].texture[this.#tiles[i].texture.length - 1].texture.sprites[0];
+            palette.sprites.set(this.#tiles[i].id, sprite);
+        }
+
+        TilePalette.LoadLocalTemp(palette);
+    }
 }

@@ -1,14 +1,16 @@
 Object.prototype.name = null;
 
-Object.prototype.toString = function () { return this.name; };
-
 Object.prototype.Duplicate = () => null;
 
 Object.InstantiationQueue = new DelegateEvent();
+Object.InstantiationIDs = [];
+Object.InstantiationCount = 0;
 
-Object.prototype.Instantiate = async function (obj, parent, transform, rotation)
+Object.prototype.Instantiate = async function (obj, parent, transform, rotation, skipComplete)
 {
     if (!(obj instanceof GameObject) && !(obj instanceof Component) && !obj.__isPrefab) return null;
+
+    Object.InstantiationCount++;
 
     let isPrefab = false;
 
@@ -18,7 +20,7 @@ Object.prototype.Instantiate = async function (obj, parent, transform, rotation)
     const scene = SceneManager.GetActiveScene();
     const components = [];
 
-    for (let i = +!isPrefab; i < obj.components.length; i++)
+    for (let i = +!isPrefab; i < obj.components?.length ?? 0; i++)
     {
         if (isPrefab)
         {
@@ -29,16 +31,15 @@ Object.prototype.Instantiate = async function (obj, parent, transform, rotation)
 
         const classData = CrystalEngine.Inner.GetClassOfType(obj.components[i].constructor.name, 0);
 
-        if (classData == null) return;
+        if (classData == null) continue;
         
-        const newComp = obj.components[i].Duplicate();
-
-        if (newComp != null) components.push(newComp);
+        const newComp = obj.components[i].Duplicate() ?? eval(`new ${obj.components[i].constructor.name}()`);
+        components.push(newComp);
     }
     
     let objID = 0;
-
-    while (GameObject.FindByID(objID) != null) objID++;
+    while (GameObject.FindByID(objID) != null || Object.InstantiationIDs.includes(objID)) objID++;
+    Object.InstantiationIDs.push(objID);
 
     let trans = null;
 
@@ -61,7 +62,7 @@ Object.prototype.Instantiate = async function (obj, parent, transform, rotation)
 
     gameObj.scene = scene;
 
-    const renderer = gameObj.GetComponent("Renderer");
+    const renderer = gameObj.GetComponent(Renderer);
 
     Object.InstantiationQueue.Add(() => {
         if (renderer != null)
@@ -75,28 +76,61 @@ Object.prototype.Instantiate = async function (obj, parent, transform, rotation)
         
         scene.gameObjects.push(gameObj);
 
-        parent?.AttachChild(transform);
+        parent?.AttachChild(trans);
     });
+
+    if (isPrefab) for (let i = 0; i < obj.children?.length ?? 0; i++) await this.Instantiate(obj.children[i], trans, null, null, true);
+
+    if (!skipComplete) await new Promise(resolve => Object.InstantiationQueue.Add(resolve));
+
+    if (parent?.gameObject.keepOnLoad) this.DontDestroyOnLoad(gameObj);
+
+    Object.InstantiationCount--;
 
     return gameObj;
 };
 
 Object.prototype.DontDestroyOnLoad = function (obj, res = [])
 {
-    if (!(obj instanceof GameObject) && !(obj instanceof Component)) return null;
+    if (!(obj instanceof GameObject) && !(obj instanceof Component)) return;
 
     if (obj instanceof Component) obj = obj.gameObject;
+    
+    if (obj.keepOnLoad)
+    {
+        Resources.DontDestroyOnLoad(...res);
+        return;
+    }
+
+    const parent = obj.transform.parent;
+    
+    if (parent != null) obj.transform.parent = null;
+
+    const child = obj.transform.GetChildren();
+
+    for (let i = 0; i < child.length; i++) this.DontDestroyOnLoad(child[i]);
 
     obj.keepOnLoad = true;
+
+    obj.transform.parent = parent;
 
     Resources.DontDestroyOnLoad(...res);
 };
 
 Object.prototype.DestroyOnLoad = function (obj, res = [])
 {
-    if (!(obj instanceof GameObject) && !(obj instanceof Component)) return null;
+    if (!(obj instanceof GameObject) && !(obj instanceof Component)) return;
 
     if (obj instanceof Component) obj = obj.gameObject;
+
+    if (!obj.keepOnLoad)
+    {
+        Resources.DestroyOnLoad(...res);
+        return;
+    }
+
+    const child = obj.transform.GetChildren();
+    for (let i = 0; i < child.length; i++) this.DestroyOnLoad(child[i]);
 
     obj.keepOnLoad = false;
 

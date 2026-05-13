@@ -1,7 +1,7 @@
 class Resources
 {
-    static #unloadedRes = [];
-    static #resources = [];
+    static #unloadedRes = new Map();
+    static #resources = new Map();
     static #prefabs = [];
 
     static keepOnLoad = [];
@@ -64,9 +64,15 @@ class Resources
     {
         this.UnloadAll();
 
+        const applyPrefab = obj => {
+            obj.__isPrefab = true;
+
+            for (let i = 0; i < obj.children?.length ?? 0; i++) applyPrefab(obj.children[i]);
+        };
+
         this.#prefabs = resources.filter(item => item.type === "GameObject").map(item => {
             const obj = item.args;
-            obj.__isPrefab = true;
+            applyPrefab(obj);
 
             return {
                 path: item.path,
@@ -74,47 +80,44 @@ class Resources
             };
         });
 
-        this.#unloadedRes = resources.filter(item => item.type !== "GameObject");
+        this.#unloadedRes = new Map(resources.filter(item => item.type !== "GameObject").map(item => [item.path, item]));
     }
     
     static Unload (...path)
-    {
+    {        
         for (let i = 0; i < path.length; i++)
         {
-            const res = this.#resources.find(item => item.path === path[i]);
+            const res = this.#resources.get(path[i]);
 
             if (res == null) continue;
 
-            res.obj.Unload();
+            res.Unload();
 
             const keepinIndex = this.keepOnLoad.indexOf(path[i]);
-            this.keepOnLoad.splice(keepinIndex, 1);
+            if (keepinIndex >= 0) this.keepOnLoad.splice(keepinIndex, 1);
 
-            const resIndex = this.#resources.indexOf(res);
-            this.#resources.splice(resIndex, 1);
+            this.#resources.delete(path[i]);
         }
     }
     
     static UnloadAll ()
     {
-        for (let i = 0; i < this.#resources.length; i++) this.#resources[i].obj.Unload();
+        this.#resources.forEach(item => item.Unload())
 
-        this.#resources = [];
+        this.#resources = new Map();
         this.keepOnLoad = [];
     }
     
     static Find (path)
     {
-        const res = this.#resources.find(item => item.path === path);
-        
-        return res?.obj;
+        return this.#resources.get(path);
     }
 
     static FindPrefab (path)
     {
         const prefab = this.#prefabs.find(item => item.path === path);
 
-        return prefab?.obj;
+        return structuredClone(prefab?.obj);
     }
     
     static async Load (...path)
@@ -135,9 +138,13 @@ class Resources
                 continue;
             }
 
-            if (this.#resources.find(item => item.path === path) != null) continue;
+            if (this.#resources.has(path[i]))
+            {
+                pathIndex++;
+                continue;
+            }
 
-            const data = this.#unloadedRes.find(item => item.path === path[i]);
+            const data = this.#unloadedRes.get(path[i]);
 
             if (data == null) throw new Error(`Resource Non-existent "${path[i]}"`);
 
@@ -148,10 +155,7 @@ class Resources
                     data.args
                 );
             
-                this.#resources.push({
-                    path : path[i],
-                    obj : obj
-                });
+                this.#resources.set(path[i], obj);
 
                 pathIndex++;
             })();
@@ -162,15 +166,19 @@ class Resources
 
     static DontDestroyOnLoad (...path)
     {
-        this.keepOnLoad.push(...path);
+        const filtered = path.filter(item => !this.keepOnLoad.includes(item));
+        this.keepOnLoad.push(...filtered);
     }
 
     static DestroyOnLoad (...path)
     {
         for (let i = 0; i < path.length; i++)
         {
+            if (path[i] == null) continue;
+ 
             const index = this.keepOnLoad.indexOf(path[i]);
-            this.keepOnLoad.splice(index, 1);
+
+            if (index >= 0) this.keepOnLoad.splice(index, 1);
         }
     }
 }

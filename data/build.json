@@ -22,7 +22,7 @@
         "invertColor"
     ],
     "targetFrameRate": -1,
-    "vSyncCount": 1,
+    "vSyncCount": 0,
     "runInBackground": false,
     "debugMode": true,
     "time": {
@@ -55,5 +55,6 @@
             "id": 2,
             "value": 1
         }
-    ]
+    ],
+    "sortingAxis" : { "x": 0, "y": -1 }
 }

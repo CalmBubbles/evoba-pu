@@ -10,6 +10,7 @@
         "Entity/EntityBank",
         "Player",
         "PackLoader",
+        "World/GameTile",
         "World/TileBank",
         "World/Chunk",
         "World/ChunkLoader",

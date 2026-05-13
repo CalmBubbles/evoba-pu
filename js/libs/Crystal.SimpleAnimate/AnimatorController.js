@@ -5,22 +5,24 @@ class AnimatorController
     nodes = [];
     parameters = [];
 
+    gameObject = null;
+    animator = null;
     currentNode = null;
     currentTransition = null;
 
-    Update (gameObject)
+    Update ()
     {
         if (!this.#started)
         {
             this.#started = true;
 
             this.currentNode = this.nodes[0].Duplicate();
-            this.currentNode.Start();
+            this.currentNode.Start(this.gameObject, this.animator);
 
             this.currentTransition = this.currentNode.transitions.find(item => item.isExit);
         }
 
-        this.currentNode.Update(gameObject);
+        this.currentNode.Update(this.gameObject, this.animator);
 
         if (this.currentTransition == null)
         {
@@ -54,6 +56,7 @@ class AnimatorController
                     if (param.type === AnimatorControllerParameterType.Trigger)
                     {
                         const value = +param.value === condition.threshold;
+                        param.value = false;
 
                         if (condition.mode === AnimatorConditionMode.If && !value) useTransition = false;
                         else if (condition.mode === AnimatorConditionMode.IfNot && value) useTransition = false;
@@ -80,12 +83,12 @@ class AnimatorController
 
         if (!(this.currentNode.animation.loop && this.currentTransition.isExit) && this.currentNode.normalizedTime >= this.currentTransition.exitTime)
         {
-            this.currentNode.End();
+            this.currentNode.End(this.gameObject, this.animator);
 
             this.currentNode = this.nodes.find(item => item.name === this.currentTransition.nextNode).Duplicate();
-            this.currentNode.Start();
+            this.currentNode.Start(this.gameObject, this.animator);
 
-            this.currentTransition = this.currentNode.transitions.find(item => item.hasExitTime);
+            this.currentTransition = this.currentNode.transitions.find(item => item.isExit);
         }
     }
 

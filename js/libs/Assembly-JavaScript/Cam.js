@@ -14,7 +14,7 @@ class Cam extends GameBehavior
 
     Update ()
     {
-        if (Input.GetKeyDown(KeyCode.F4)) Window.fullscreen = !Window.fullscreen;
+        if (Input.GetKeyDown(KeyCode.F4)) GameWindow.fullscreen = !GameWindow.fullscreen;
     }
     
     LateUpdate ()

@@ -3,8 +3,8 @@ class Tilemap extends Renderer
     #loaded = false;
     #meshChanged = true;
     #merging = false;
-    #tiles = [];
-    #rendersets = [];
+    #tiles = new Map();
+    #rendersets = new Map();
     #gridSize = Vector2.zero;
     #bounds = new Bounds(new Vector2(NaN, NaN));
     #transMat = Matrix3x3.identity;
@@ -13,6 +13,7 @@ class Tilemap extends Renderer
     #min = null;
     #max = null;
     #sprite = null;
+    #vertexArray = null;
 
     mergeResolution = 16;
 
@@ -42,6 +43,28 @@ class Tilemap extends Renderer
         return this.#sprite != null;
     }
 
+    get materials ()
+    {
+        return Array.from(this.#rendersets).map(item => item[1].material);
+    }
+
+    set tint (value)
+    {
+        super.tint = value;
+
+        this.#rendersets.forEach(item => item.SetTint([
+            value.r,
+            value.g,
+            value.b,
+            value.a
+        ]));
+    }
+
+    get tint ()
+    {
+        return super.tint;
+    }
+
     #RenderSet = class
     {
         colorsUpdated = false;
@@ -59,6 +82,7 @@ class Tilemap extends Renderer
         textureArray = [];
         color = [];
         colorArray = [];
+        tint = [];
         indexes = [];
         trisCounts = [];
         scaler = Vector2.zero;
@@ -126,6 +150,8 @@ class Tilemap extends Renderer
             this.aVertexPosID = this.material.GetAttributeNameID("aVertexPos");
             this.aTexturePosID = this.material.GetAttributeNameID("aTexturePos");
             this.aColorID = this.material.GetAttributeNameID("aColor");
+
+            this.arraysUpdated = true;
         }
 
         SetColors (color)
@@ -144,6 +170,13 @@ class Tilemap extends Renderer
             );
 
             this.colorsUpdated = true;
+        }
+
+        SetTint (color)
+        {
+            this.tint = color;
+
+            if (this.material != null) this.material.SetVector("uTint", ...color);
         }
 
         UpdateMesh ()
@@ -179,6 +212,7 @@ class Tilemap extends Renderer
             this.arraysUpdated = true;
 
             this.SetColors(this.color);
+            this.SetTint(this.tint);
         }
 
         Add (tile)
@@ -244,7 +278,7 @@ class Tilemap extends Renderer
             this.color.a
         ];
 
-        if (this.#sprite == null) for (let i = 0; i < this.#rendersets.length; i++) this.#rendersets[i].SetColors(color);
+        if (this.#sprite == null) this.#rendersets.forEach(item => item.SetColors(color));
         else this.material.SetBuffer(this.colorBufferID, [
             ...color,
             ...color,
@@ -314,22 +348,35 @@ class Tilemap extends Renderer
 
     Reload ()
     {
+        const updatedMaterial = this.updatedMaterial;
+
         super.Reload();
 
-        for (let i = 0; i < this.#rendersets.length; i++) this.#rendersets[i].SetMaterial(this.material);
+        this.#rendersets.forEach(item => item.SetMaterial(this.material));
+
+        if (updatedMaterial)
+        {
+            if (this.#sprite != null)
+            {
+                this.material.SetBuffer(this.geometryBufferID, this.#vertexArray);
+                this.material.SetBuffer(this.textureBufferID, this.#vertexArray);
+            }
+            
+            this.#RemapColors();
+            this.tint = this.tint;
+        }
     }
 
     ForceMeshUpdate ()
     {
-        if (!this.#loaded) this.grid = this.GetComponentInParent("Grid");
+        if (!this.#loaded) this.grid = this.GetComponentInParent(Grid);
 
         this.#gridSize = Vector2.Add(this.grid.cellSize, this.grid.cellGap);
 
-        for (let i = 0; i < this.#rendersets.length; i++)
-        {
-            this.#rendersets[i].SetMaterial(this.material);
-            this.#rendersets[i].UpdateMesh();
-        }
+        this.#rendersets.forEach(item => {
+            item.SetMaterial(this.material);
+            item.UpdateMesh();
+        });
 
         this.#meshChanged = false;
         this.#loaded = true;
@@ -371,7 +418,7 @@ class Tilemap extends Renderer
             return;
         }
 
-        if (this.#rendersets.length > 0) for (let i = 0; i < this.#rendersets.length; i++) this.#RenderRenderSet(this.#rendersets[i]);
+        if (this.#rendersets.size > 0) this.#rendersets.forEach(item => this.#RenderRenderSet(item));
         if (this.#merging) this.#Merge();
     }
 
@@ -409,7 +456,7 @@ class Tilemap extends Renderer
 
     GetTile (position)
     {
-        return this.#tiles.find(item => item.position.Equals(position));
+        return this.#tiles.get(`${position.x}_${position.y}`);
     }
 
     async AddTile (tile)
@@ -418,34 +465,34 @@ class Tilemap extends Renderer
 
         if (existed != null)
         {
-            const existedID = this.#tiles.indexOf(existed);
+            if (existed.spriteID === tile.spriteID) return;
 
-            if (existed.spriteID === tile.spriteID) return existedID;
-
-            this.RemoveTile(existedID);
+            this.RemoveTile(tile.position);
         }
-        else if (this.#min != null && this.#max != null)
+        else if (this.#min != null)
         {
-            this.#min = new Vector2(
-                Math.min(this.#min.x, tile.position.x),
-                Math.min(this.#min.y, tile.position.y)
-            );
-            this.#max = new Vector2(
-                Math.max(this.#max.x, tile.position.x),
-                Math.max(this.#max.y, tile.position.y)
-            );
+            this.#min = Vector2.Min(this.#min, tile.position);
+            this.#max = Vector2.Max(this.#max, tile.position);
         }
         else
         {
-            this.#min = new Vector2(tile.position.x, tile.position.y);
-            this.#max = new Vector2(tile.position.x, tile.position.y);
+            this.#min = tile.position.Duplicate();
+            this.#max = tile.position.Duplicate();
         }
 
-        this.#tiles.push(tile);
+        this.#tiles.set(`${tile.position.x}_${tile.position.y}`, tile);
 
-        tile.sprite = TileBank.GetTileInfo(tile.spriteID).texture.sprites[0].Duplicate();
+        let palette = TilePalette.Find(tile.palette);
 
-        let renderSet = this.#rendersets.find(item => item.texture === tile.sprite.texture);
+        if (palette == null)
+        {
+            await TilePalette.Load(tile.palette);
+            palette = TilePalette.Find(tile.palette);
+        }
+
+        tile.sprite = palette.sprites.get(tile.spriteID);
+
+        let renderSet = this.#rendersets.get(tile.sprite.texture);
         const makeSet = renderSet == null;
 
         if (makeSet)
@@ -458,9 +505,15 @@ class Tilemap extends Renderer
                 this.color.b,
                 this.color.a
             ];
+            renderSet.tint = [
+                this.tint.r,
+                this.tint.g,
+                this.tint.b,
+                this.tint.a
+            ];
             renderSet.parent = this;
 
-            this.#rendersets.push(renderSet);
+            this.#rendersets.set(tile.sprite.texture, renderSet);
         }
 
         if (this.#loaded)
@@ -476,41 +529,35 @@ class Tilemap extends Renderer
             this.RecalcBounds();
         }
         else renderSet.tiles.push(tile);
-
-        return this.#tiles.length;
     }
 
-    RemoveTile (id)
+    RemoveTile (position)
     {
-        if (id < 0 || id >= this.#tiles.length) return;
+        const tile = this.GetTile(position);
 
-        const tile = this.#tiles[id];
+        if (tile == null) return;
 
-        this.#tiles.splice(id, 1);
+        this.#tiles.delete(`${position.x}_${position.y}`);
 
-        for (let i = 0; i < this.#tiles.length; i++)
-        {
-            const pos = this.#tiles[i].position;
+        let checkedOne = false;
 
-            if (i === 0)
+        this.#tiles.forEach(item => {
+            const pos = item.position;
+
+            if (!checkedOne)
             {
-                this.#min = new Vector2(pos.x, pos.y);
-                this.#max = new Vector2(pos.x, pos.y);
+                checkedOne = true;
+                this.#min = pos.Duplicate();
+                this.#max = pos.Duplicate();
 
-                continue;
+                return;
             }
 
-            this.#min = new Vector2(
-                Math.min(this.#min.x, pos.x),
-                Math.min(this.#min.y, pos.y)
-            );
-            this.#max = new Vector2(
-                Math.max(this.#max.x, pos.x),
-                Math.max(this.#max.y, pos.y)
-            );
-        }
+            this.#min = Vector2.Min(this.#min, pos);
+            this.#max = Vector2.Max(this.#max, pos);
+        });
 
-        if (this.#tiles.length === 0)
+        if (this.#tiles.size === 0)
         {
             this.#min = null;
             this.#max = null;
@@ -520,7 +567,7 @@ class Tilemap extends Renderer
 
         this.RecalcBounds();
 
-        const renderset = this.#rendersets.find(item => item.texture === tile.sprite.texture);
+        const renderset = this.#rendersets.get(tile.sprite.texture);
 
         if (this.#loaded) renderset.Remove(tile);
         else
@@ -529,14 +576,7 @@ class Tilemap extends Renderer
             renderset.tiles.splice(setID, 1);
         }
 
-        if (renderset.tiles.length === 0) this.#rendersets.splice(this.#rendersets.indexOf(renderset), 1);
-    }
-
-    RemoveTileByPosition (position)
-    {
-        const tile = this.GetTile(position);
-
-        if (tile != null) this.RemoveTile(this.#tiles.indexOf(tile));
+        if (renderset.tiles.length === 0) this.#rendersets.delete(tile.sprite.texture);
     }
 
     async #Merge ()
@@ -544,55 +584,24 @@ class Tilemap extends Renderer
         this.#merging = false;
 
         const res = this.mergeResolution;
-        const canvas = document.createElement("canvas");
-        canvas.width = (this.#max.x - this.#min.x + 1) * this.#gridSize.x * res;
-        canvas.height = (this.#max.y - this.#min.y + 1) * this.#gridSize.y * res;
-        canvas.style.imageRendering = "pixelated";
-        const context = canvas.getContext("2d");
-        
-        for (let i = 0; i < this.#tiles.length; i++)
-        {
-            const sprite = this.#tiles[i].sprite;
-            const texture = sprite.texture;
-            const rect = sprite.rect;
+        const url = await TilemapMerger.Merge({
+            res: res,
+            gridSize: this.#gridSize,
+            min: this.#min,
+            max: this.#max,
+            tiles: Array.from(this.#tiles).map(item => {
+                const sprite = item[1].sprite;
 
-            const pos = new Vector2(
-                (this.#tiles[i].position.x - this.#min.x) * this.#gridSize.x,
-                (this.#tiles[i].position.y - this.#max.y) * this.#gridSize.y
-            )
-            const offset = new Vector2(
-                (rect.width * 0.5 / sprite.pixelPerUnit) - this.#gridSize.x * 0.5,
-                (rect.height * 0.5 / sprite.pixelPerUnit) - this.#gridSize.y * 0.5
-            );
-            const pivotOffset = Vector2.Scale(
-                Vector2.Add(Vector2.Scale(sprite.pivot, -2), 1),
-                new Vector2(
-                    rect.width * 0.5,
-                    rect.height * 0.5
-                )
-            );
-        
-            context.imageSmoothingEnabled = false;
-            context.drawImage(
-                texture.img,
-                rect.x,
-                rect.y,
-                rect.width,
-                rect.height,
-                (pos.x - offset.x) * res + pivotOffset.x,
-                (-pos.y - offset.y) * res + pivotOffset.y,
-                rect.width * res / sprite.pixelPerUnit,
-                rect.height * res / sprite.pixelPerUnit
-            );
-        }
-        
-        const texture = new Texture(canvas.toDataURL("image/png"), "");
+                return {
+                    sprite: sprite,
+                    bitmap: sprite.texture.bitmap,
+                    pos: item[1].position
+                };
+            })
+        });
+
+        const texture = new Texture(url, "");
         await texture.Load();
-
-        canvas.width = 0;
-        canvas.height = 0;
-        
-        context.reset();
 
         const sprite = texture.sprites[0];
         const verts = sprite.vertices;
@@ -614,6 +623,8 @@ class Tilemap extends Renderer
         const texY = texture.height;
         const rescaleW = texX / res;
         const rescaleH = texY / res;
+
+        this.#vertexArray = vertexArray;
 
         this.material.SetBuffer(this.geometryBufferID, vertexArray);
         this.material.SetBuffer(this.textureBufferID, vertexArray);
@@ -648,7 +659,7 @@ class Tilemap extends Renderer
     }
 
     Merge ()
-    {
+    {   
         this.Unmerge();
 
         this.#merging = true;
@@ -656,7 +667,12 @@ class Tilemap extends Renderer
 
     Unmerge ()
     {
-        if (!this.mergedRendering) return;
+        if (!this.mergedRendering)
+        {   
+            if (this.#merging) this.#merging = false;
+
+            return;
+        }
 
         this.#sprite.texture.Unload();
         this.#sprite = null;
@@ -666,9 +682,9 @@ class Tilemap extends Renderer
 
     Duplicate ()
     {
-        const output = new Tilemap(this.material.Duplicate());
+        const output = new Tilemap(this.material);
 
-        for (let i = 0; i < this.#tiles.length; i++) output.AddTile(this.#tiles[i].Duplicate());
+        this.#tiles.forEach(item => output.AddTile(item.Duplicate()));
         
         if (this.mergedRendering) output.Merge();
 

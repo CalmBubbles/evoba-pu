@@ -1,7 +1,9 @@
+if (pos.y === -1) return new GameTile("pu:sys:invisible_bedrock");
+
 if (pos.y >= 200) return input;
 
 if (pos.Equals(new Vector2(0, 2))) return;
 
-if (pos.y < 2 || Math.abs(noise.simplex2(pos.x / 30, pos.y / 30)) <= 0.5) return Math.abs(noise.simplex2(pos.x / 10, pos.y / 10)) <= 0.8 ? "pu:stone" : "pu:marble";
+if (pos.y < 2 || Math.abs(noise.simplex2(pos.x / 30, pos.y / 30)) <= 0.5) return Math.abs(noise.simplex2(pos.x / 10, pos.y / 10)) <= 0.8 ? new GameTile("pu:stone") : new GameTile("pu:marble");
 
 return input;

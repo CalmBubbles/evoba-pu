@@ -7,7 +7,7 @@ class Test extends GameBehavior
     async Start ()
     {
         Crispixels.effect = true;
-        this.#a = this.GetComponent("Renderer");
+        this.#a = this.GetComponent(Renderer);
 
         (async () => {
             this.#parts = [

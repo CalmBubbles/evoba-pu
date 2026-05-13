@@ -1,6 +1,7 @@
 class GameObject
 {
     #active = false;
+    #activeSelfOld = false;
     #activeOld = false;
     #persistent = false;
     #name = "Empty Object";
@@ -13,16 +14,21 @@ class GameObject
     scene = null;
     sceneTreeNode = null;
     
+    get #parentActive ()
+    {
+        if (this.transform.parent == null) return true;
+
+        return this.transform.parent.gameObject.activeInHierarchy;
+    }
+
     get activeSelf ()
     {
-        return this.#activeOld && this.#active;
+        return this.#activeSelfOld && this.#active;
     }
 
     get activeInHierarchy ()
     {
-        if (this.transform.parent == null) return this.activeSelf;
-
-        return this.activeSelf && this.transform.parent.gameObject.activeInHierarchy;
+        return this.activeSelf && this.#parentActive && this.#activeOld;
     }
     
     get name ()
@@ -150,13 +156,13 @@ class GameObject
         return SceneManager.GetActiveScene().gameObjects.find(element => element.GetSceneID() === id);
     }
     
-    static FindComponents (type)
+    static FindComponents (type, includeInactive)
     {
-        const gameObjs = SceneManager.GetActiveScene().gameObjects.filter(item => item.activeInHierarchy);
+        const gameObjs = SceneManager.GetActiveScene().gameObjects.filter(item => item.activeInHierarchy || includeInactive);
         
         let output = [];
         
-        for (let i = 0; i < gameObjs.length; i++) output.push(...gameObjs[i].GetComponents(type));
+        for (let i = 0; i < gameObjs.length; i++) output.push(...gameObjs[i].GetComponents(type, includeInactive));
         
         return output;
     }
@@ -168,9 +174,31 @@ class GameObject
     
     #IsComponent (item, type, includeInactive)
     {
-        if (!(eval(`item instanceof ${type}`)) || (item instanceof Behavior && !item.enabled && !includeInactive)) return false;
+        if (typeof type === "string") type = eval(type);
+
+        if (!(item instanceof type) || (item instanceof Behavior && !item.enabled && !includeInactive)) return false;
         
         return true;
+    }
+
+    AddComponent (component)
+    {
+        component.gameObject = this;
+        component.name = this.name;
+
+        this.#components.push(component);
+    }
+
+    RemoveComponent (component)
+    {
+        const index = this.#components.indexOf(component);
+
+        if (index < 0) return;
+
+        this.#components.splice(index, 1);
+
+        component.gameObject = null;
+        component.name = null;
     }
     
     GetSceneID ()
@@ -182,8 +210,9 @@ class GameObject
     {
         this.#active = state;
     }
-    
-    BroadcastMessage (method, params, data)
+
+    // This is braindamaging
+    BroadcastMessageLocal (method, params, data)
     {
         let args = "";
         let dat = data ?? { };
@@ -194,20 +223,40 @@ class GameObject
         // 3 : Disable
         if (dat.specialCall == null) dat.specialCall = 0;
 
-        if (!this.activeSelf && !dat.passActive) return;
+        if (!this.activeInHierarchy && !dat.passActive) return;
 
         switch (dat.specialCall)
         {
-            case 2:
-                if (this.#activeOld || !this.#active) return;
+            case 2: {
+                // if: (SELF) WAS not active & is NOW active
+                // then: update active old
+
+                const selfCheck = !this.#activeSelfOld && this.#active;
+                if (selfCheck) this.#activeSelfOld = true;
+                
+                // if: WAS not active & is NOW active
+                // then: Enable
+
+                const changed = !this.#activeOld && (this.activeSelf && this.#parentActive);
+                if (!changed) return;
 
                 this.#activeOld = true;
-                break;
-            case 3:
-                if (!this.#activeOld || this.#active) return;
+            } break;
+            case 3: {
+                // if: (SELF) WAS active & is NOW not active
+                // then: update active old
+
+                const selfCheck = this.#activeSelfOld && !this.#active;
+                if (selfCheck) this.#activeSelfOld = false;
+                
+                // if: WAS active & is NOW not active
+                // then: Enable
+
+                const changed = this.#activeOld && !(this.activeSelf && this.#parentActive);
+                if (!changed) return;
 
                 this.#activeOld = false;
-                break;
+            } break;
         }
         
         if (Array.isArray(params))
@@ -234,23 +283,68 @@ class GameObject
         }
     }
     
-    GetComponent (type)
+    BroadcastMessage (method, params, data)
     {
-        return this.#components.find(item => this.#IsComponent(item, type, false));
+        this.BroadcastMessageLocal(method, params, data);
+
+        const children = this.transform.GetChildren();
+        for (let i = 0; i < children.length; i++) children[i].gameObject.BroadcastMessage(method, params, data);
     }
     
-    GetComponents (type)
+    GetComponent (type, includeInactive)
     {
-        return this.#components.filter(item => this.#IsComponent(item, type, false));
+        return this.#components.find(item => this.#IsComponent(item, type, includeInactive));
+    }
+    
+    GetComponents (type, includeInactive)
+    {
+        return this.#components.filter(item => this.#IsComponent(item, type, includeInactive));
     }
 
-    GetComponentInParent (type)
+    GetComponentInParent (type, includeInactive)
     {
-        return this.transform.parent.GetComponent(type);
+        const selfComponent = this.GetComponent(type, includeInactive);
+        if (selfComponent != null) return selfComponent;
+
+        return this.transform.parent?.GetComponentInParent(type, includeInactive);
     }
 
-    GetComponentsInParent (type)
+    GetComponentsInParent (type, includeInactive)
     {
-        return this.transform.parent.GetComponents(type);
+        let components = [];
+
+        const selfComponent = this.GetComponent(type, includeInactive);
+        if (selfComponent != null) components.push(selfComponent);
+
+        if (this.transform.parent != null) components.push(...this.transform.parent.GetComponentsInParent(type, includeInactive));
+
+        return components.filter(item => item != null);
+    }
+
+    GetComponentInChildren (type, includeInactive)
+    {
+        const selfComponent = this.GetComponent(type, includeInactive);
+        if (selfComponent != null) return selfComponent;
+
+        const children = this.transform.GetChildren();
+
+        for (let i = 0; i < children.length; i++)
+        {
+            const component = children[i].GetComponentInChildren(type, includeInactive);
+            if (component != null) return component;
+        }
+    }
+
+    GetComponentsInChildren (type, includeInactive)
+    {
+        const children = this.transform.GetChildren();
+        let components = [];
+        
+        const selfComponent = this.GetComponent(type, includeInactive);
+        if (selfComponent != null) components.push(selfComponent);
+
+        for (let i = 0; i < children.length; i++) components.push(...children[i].GetComponentsInChildren(type, includeInactive));
+
+        return components.filter(item => item != null);
     }
 }

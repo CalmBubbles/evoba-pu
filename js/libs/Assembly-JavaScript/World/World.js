@@ -24,7 +24,7 @@ class World extends GameBehavior
 
     static async Load ()
     {
-        // window.indexedDB.deleteDatabase("world_0");
+        window.indexedDB.deleteDatabase("world_0");
 
         const dbRequest = window.indexedDB.open("world_0");
         dbRequest.onupgradeneeded = () => {
@@ -77,7 +77,7 @@ class World extends GameBehavior
                 x: chunk.pos.x,
                 y: chunk.pos.y
             },
-            tiles: [...chunk.data]
+            tiles: [...chunk.tiles]
         });
         
         if (!this.#updatedChunks.includes(key)) this.#updatedChunks.push(key);
@@ -103,7 +103,7 @@ class World extends GameBehavior
             maxEnergy: player.maxEnergy
         });
         
-        if (!this.#updatedPlayers.includes(UserData.i)) this.#updatedPlayers.push(UserData.id);
+        if (!this.#updatedPlayers.includes(UserData.id)) this.#updatedPlayers.push(UserData.id);
     }
 
     static async Save ()
@@ -161,7 +161,8 @@ class World extends GameBehavior
         // FPSMeter.enabled = true;
         // FPSMeter.detailed = true;
         
-        World.grid = this.GetComponent("Grid");
+        World.grid = this.GetComponent(Grid);
+        TileBank.LoadTextures();
     }
 
     #GetChunkData (pos)
@@ -172,7 +173,7 @@ class World extends GameBehavior
 
         const chunk = new Chunk();
         chunk.pos.Set(chunkData.pos.x, chunkData.pos.y);
-        chunk.data = [...chunkData.tiles];
+        chunk.tiles = [...chunkData.tiles];
 
         return chunk;
     }
@@ -241,13 +242,9 @@ class World extends GameBehavior
             this.#LoadChunk(Vector2.Add(chunkPos, Vector2.right));
             this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(-1, 1)));
             this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(1, 1)));
-
-            if (chunkPos.y > 0)
-            {
-                this.#LoadChunk(Vector2.Add(chunkPos, Vector2.down));
-                this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(-1, -1)));
-                this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(1, -1)));
-            }
+            this.#LoadChunk(Vector2.Add(chunkPos, Vector2.down));
+            this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(-1, -1)));
+            this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(1, -1)));
         }
     }
 

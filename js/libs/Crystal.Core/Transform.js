@@ -123,7 +123,7 @@ class Transform extends Component
     {
         if (this.#parent == null || this.gameObject == null) return;
         
-        this.#parent.AttachChild(this);
+        this.#parent.AttachChild(this, true);
         
         const rotation = this.#parent.rotation / (180 / Math.PI);
         const pos = Vector2.Add(
@@ -143,6 +143,8 @@ class Transform extends Component
             this.scale
         );
         this.#lWMatInv = this.#lWMat.inverse;
+
+        for (let i = 0; i < this.childCount; i++) this.GetChild(i).Recalc();
     }
     
     Recalc ()
@@ -173,22 +175,19 @@ class Transform extends Component
         );
         this.#lWMatInv = this.#lWMat.inverse;
 
-        if (this.gameObject != null) this.GetComponent("Renderer")?.RecalcBounds();
+        if (this.gameObject != null) this.GetComponent(Renderer)?.RecalcBounds();
         
         for (let i = 0; i < this.childCount; i++) this.GetChild(i).Recalc();
     }
     
     SetParent (parent)
-    {
+    {   
         if (this.#parent === parent) return;
         
         const parentOld = this.#parent;
-        
         this.#parent = parent;
         
         if (this.gameObject != null) parentOld?.DetachChildByID(this.gameObject.GetSceneID());
-        
-        this.#parent = parent;
         
         this.#BindData();
     }
@@ -234,27 +233,17 @@ class Transform extends Component
     
     DetachChildByID (id)
     {
-        let newChild = [];
-        
-        for (let i = 0; i < this.childCount; i++)
-        {
-            const child = this.#child[i];
+        const index = this.#child.indexOf(id);
+
+        if (index < 0) return;
+
+        this.#child.splice(index, 1);
+
+        const child = GameObject.FindByID(id);
+
+        if (child.parent !== this) return;
             
-            if (child === id)
-            {
-                const target = this.GetChild(i);
-                
-                target.parent = null;
-                
-                target.Recalc();
-                
-                continue;
-            }
-            
-            newChild.push(child);
-        }
-        
-        this.#child = newChild;
+        child.parent = null;
     }
     
     DetachChild (index)
@@ -269,27 +258,19 @@ class Transform extends Component
         for (let i = 0; i < this.childCount; i++)
         {
             const child = this.GetChild(i);
-            
             child.parent = null;
-            
-            child.Recalc();
         }
         
         this.#child = [];
     }
     
-    AttachChild (child)
+    AttachChild (child, bind)
     {
-        if (child.parent !== this)
-        {
-            child.parent = this;
-            
-            child.Recalc();
-        }
-        
         const id = child.gameObject.GetSceneID();
+
+        if (child.parent !== this) child.parent = this;
         
-        this.#child.push(id);
+        if (bind && !this.HasChild(id)) this.#child.push(id);
     }
     
     AttachChildByID (id)
@@ -306,6 +287,16 @@ class Transform extends Component
         return GameObject.FindByID(id).transform;
     }
 
+    HasChild (id)
+    {
+        return this.#child.includes(id);
+    }
+
+    GetChildren ()
+    {
+        return this.#child.map(item => GameObject.FindByID(item).transform);
+    }
+
     Duplicate ()
     {
         const output = new Transform();
@@ -314,7 +305,7 @@ class Transform extends Component
         output.localRotation = this.#rotation;
         output.localScale = this.#scale.Duplicate();
 
-        for (let i = 0; i < this.childCount; i++) this.Instantiate(GameObject.FindByID(this.#child[i]), output);
+        for (let i = 0; i < this.childCount; i++) this.Instantiate(GameObject.FindByID(this.#child[i]), output, null, null, true);
 
         return output;
     }

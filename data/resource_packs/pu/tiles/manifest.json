@@ -1,4 +1,5 @@
 [
+    { "id": "pu:sys:invisible_bedrock", "src": "blank.png" },
     { "id": "pu:dirt", "src": "dirt.png" },
     { "id": "pu:stone", "src": "stone.png" },
     { "id": "pu:marble", "src": "marble.png" }

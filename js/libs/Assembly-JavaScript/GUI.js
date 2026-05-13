@@ -16,18 +16,18 @@ class GUI extends GameBehavior
     
     Start ()
     {
-        this.#tilesText = this.transform.Find("tiles/text").GetComponent("Text");
+        this.#tilesText = this.transform.Find("tiles/text").GetComponent(Text);
 
-        this.#hpText = this.transform.Find("hp/text").GetComponent("Text");
+        this.#hpText = this.transform.Find("hp/text").GetComponent(Text);
         this.#hpBack = this.transform.Find("hp/back");
         this.#hpBar = this.transform.Find("hp/bar");
 
-        this.#energyText = this.transform.Find("energy/text").GetComponent("Text");
+        this.#energyText = this.transform.Find("energy/text").GetComponent(Text);
         this.#energyBack = this.transform.Find("energy/back");
         this.#energyBar = this.transform.Find("energy/bar");
     }
     
-    Update ()
+    LateUpdate ()
     {
         if (this.#tiles !== Player.instance.tiles)
         {
@@ -74,5 +74,7 @@ class GUI extends GameBehavior
                 this.#energyBack.scale.y
             );
         }
+
+        GameWindow.SetTitle(Player.instance.pos);
     }
 }
