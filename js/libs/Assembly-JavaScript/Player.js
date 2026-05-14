@@ -143,8 +143,8 @@ class Player extends Entity
         if (rotation == null) rotation = 0;
 
         Cam.instance.Shake(
-            1,
-            // Math.Clamp(0.01 * dmg, 0.125, 0.5),
+            // 1,
+            Math.Clamp(0.01 * dmg, 0.125, 0.5),
             Vector2.Scale(dir, dmg),
             rotation * dmg
 
