@@ -4,6 +4,9 @@ class TerrainBuilder
 
     static #Pass (pos)
     {
+        if (pos.y === -1) return new GameTile("pu:sys:invisible_bedrock");
+        if (pos.y < -1) return new GameTile("pu:air");
+
         let output = null;
 
         for (let i = 0; i < this.#passes.length; i++)

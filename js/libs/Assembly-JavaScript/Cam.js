@@ -2,6 +2,7 @@ class Cam extends GameBehavior
 {
     static instance = null;
 
+    #lerpSpeed = 5;
     #shakeDuration = 0;
     #shakeTime = 0;
     #shakeAngularIntensity = 0;
@@ -19,27 +20,49 @@ class Cam extends GameBehavior
     
     LateUpdate ()
     {
-        this.transform.position = Vector2.Lerp(
-            this.transform.position,
-            new Vector2(
-                Player.instance.transform.position.x,
-                Math.max(Player.instance.transform.position.y + 0.5, 0)
-            ),
-            15 * Time.deltaTime
+        const inPos = this.transform.position;
+        const targetPos = new Vector2(
+            Player.instance.transform.position.x,
+            Math.max(Player.instance.transform.position.y + 0.5, 0)
         );
 
-        if (this.#shakeTime <= 0) return;
+        let pos = Vector2.Lerp(
+            inPos,
+            targetPos,
+            this.#lerpSpeed * Time.deltaTime / Player.instance.moveDelay
+        );
+
+        if (Player.instance.isFalling) pos.y = Math.Lerp(inPos.y, targetPos.y, 20 * Time.deltaTime);
+
+        if (this.#shakeTime <= 0)
+        {
+            this.transform.position = pos;
+            return;
+        }
 
         this.#shakeTime -= Time.deltaTime;
 
-        this.transform.position = new Vector2(
-            this.transform.position.x + (Math.random() * 2 - 1) * (this.#shakeIntensity.x * (this.#shakeTime / this.#shakeDuration * 0.25)),
-            this.transform.position.y + (Math.random() * 2 - 1) * (this.#shakeIntensity.y * (this.#shakeTime / this.#shakeDuration * 0.25))
+        const intensityScale = this.#shakeTime / this.#shakeDuration * 0.25;
+
+        this.transform.position = Vector2.Add(
+            pos,
+            Vector2.Scale(
+                new Vector2(
+                    Math.random() * 1 + 0.5,
+                    Math.random() * 1 + 0.5
+                ),
+                Vector2.Scale(
+                    this.#shakeIntensity,
+                    intensityScale
+                )
+            )
         );
-        this.transform.rotation = (Math.random() * 2 - 1) * (this.#shakeAngularIntensity * (this.#shakeTime / this.#shakeDuration * 0.25));
+        this.transform.rotation = (Math.random() * 1 + 0.5) * (this.#shakeAngularIntensity * intensityScale);
 
         if (this.#shakeTime > 0) return;
 
+        this.#shakeIntensity = Vector2.zero;
+        this.#shakeAngularIntensity = 0;
         this.transform.rotation = 0;
     }
 

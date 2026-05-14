@@ -1,5 +1,3 @@
-if (pos.y === -1) return new GameTile("pu:sys:invisible_bedrock");
-
 if (pos.y >= 200) return input;
 
 if (pos.Equals(new Vector2(0, 2))) return;

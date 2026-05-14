@@ -3,29 +3,34 @@ class Player extends Entity
     static instance = null;
 
     #delay = 0.2;
-    #timer = 0;
     #xTime = 0;
     #yTime = 0;
-    #input = Vector2.zero;
-
-    #fallStart = null;
-
-    get moveDelay ()
-    {
-        return 0.01; (this.#delay + Math.max(0.2 * (3 - this.energy), 0)) / this.speed;
-    }
 
     hp = 10;
     maxHp = 10;
+    strength = 2;
+    speed = 1;
+    mass = 30;
+
     energy = 15;
     maxEnergy = 15;
     tiles = 0;
-    strength = 2;
+
     pos = Vector2.zero;
     lastPos = Vector2.zero;
     targetPos = Vector2.zero;
-    speed = 1;
-    mass = 30;
+
+    get moveDelay ()
+    {
+        const rawDelay = (this.#delay + Math.max(0.2 * (3 - this.energy), 0)) / this.speed;
+
+        return Math.max(rawDelay, 1e-100); ;
+    }
+    
+    Awake ()
+    {
+        Player.instance = this;
+    }
 
     Start ()
     {
@@ -42,126 +47,14 @@ class Player extends Entity
         }
         else this.TP(new Vector2(0, 2));
 
-        Player.instance = this;
-
-        this.transform.position = World.grid.CellToWorld(this.pos);
-        this.#timer = this.moveDelay;
-    }
-
-    #ProcessInput ()
-    {
-        const dir = Vector2.Subtract(this.targetPos, this.pos).normalized;
-        const targetPos = Vector2.Add(this.pos, dir);
-        const nextNode = ChunkLoader.GetNodeByPos(targetPos);
-        const nextGroundNode = ChunkLoader.GetNodeByPos(Vector2.Add(targetPos, Vector2.down));
-
-        if (nextNode == null || nextGroundNode == null) return false;
-
-        const nextTile = nextNode.GetOwnerOfType(GameTile);
-
-
-        // Break
-        if (nextTile != null)
-        {
-            const hardness = nextTile.GetCommonData().hardness;
-
-            if (hardness < 0 || this.strength < hardness)
-            {
-                // Collide
-                this.targetPos = this.pos.Duplicate();
-                return false;
-            }
-
-            this.tiles++;
-            this.energy -= 0.025;
-            nextNode.RemoveTile();
-        }
-
-
-        // Move
-        this.pos = Vector2.Add(
-            this.pos,
-            dir
-            // Vector2.Clamp(dir, Vector2.left, Vector2.one)
-        );
-
-
-        // Place
-        if (this.#input.Equals(Vector2.up) && this.tiles > 0)
-        {
-            this.tiles--;
-            this.energy -= 0.025;
-
-            nextGroundNode.SetTile(new GameTile("pu:dirt"));
-        }
-
-        return true;
-    }
-
-    FixedUpdate ()
-    {   
-        let hasInput = !this.#input.Equals(Vector2.zero) && !(this.#input.Equals(Vector2.up) && this.tiles === 0);
-
-        if (hasInput)
-        {
-            while (!this.pos.Equals(this.targetPos))
-            {
-                if (!hasInput)
-                {
-                    this.targetPos = this.pos.Duplicate();
-                    break;
-                }
-
-                const processed = this.#ProcessInput();
-                if (!processed) break;
-
-                hasInput = !(this.#input.Equals(Vector2.up) && this.tiles === 0);
-            }
-
-            if (this.pos.Equals(this.targetPos))
-            {
-                this.#timer = this.moveDelay;
-                this.#input = Vector2.zero;
-                hasInput = false;
-            }
-        }
-
-        // Fall
-        // if (!hasInput)
-        // {
-        //     let groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.pos, Vector2.down));
-        //     let falling = groundNode == null ? false : groundNode.GetOwnerOfType(GameTile) == null;
-
-        //     if (falling)
-        //     {
-        //         if (this.#fallStart == null) this.#fallStart = this.pos.y;
-
-        //         this.pos.y -= Time.fixedDeltaTime * this.mass;
-        //         this.#timer += Time.fixedDeltaTime;
-
-        //         groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.pos, Vector2.down));
-        //         falling = groundNode == null ? false : groundNode.GetOwnerOfType(GameTile) == null;
-        //     }
-
-        //     if (!falling && this.#fallStart != null) // on land
-        //     {
-        //         this.pos.y = Math.ceil(this.pos.y);
-        //         const fallHeight = this.#fallStart - this.pos.y;
-        //         this.#fallStart = null;
-
-        //         if (fallHeight > 3) this.Hurt(Vector2.down, Math.max((fallHeight - 3) * 2, 0));
-        //     }
-        // }
-
-        if (!this.lastPos.Equals(this.pos))
-        {
-            World.SetPlayer(this);
-            this.lastPos = this.pos.Duplicate();
-        }
+        super.Start();
     }
 
     Update ()
     {
+        super.Update();
+
+
         // Get Input
         const input = new Vector2(
             +Input.GetKey(KeyCode.ArrowRight) - +Input.GetKey(KeyCode.ArrowLeft),
@@ -180,19 +73,12 @@ class Player extends Entity
             else input.y = 0;
         }
 
-        if (this.#timer > 0) this.#timer -= Time.deltaTime;
-        else if (this.#input.Equals(Vector2.zero) && !input.Equals(Vector2.zero))
-        {
-            this.#input = input;
-            this.lastPos = this.pos.Duplicate();
-            this.targetPos = Vector2.Add(
-                this.pos,
-                Vector2.Scale(
-                    this.#input,
-                    Math.max(Math.round(Time.fixedDeltaTime / Math.max(this.moveDelay, 1e-100)), 1)
-                )
-            );
-        }
+        this.Move(input);
+
+
+        const cam = Camera.main;
+
+        if (Input.GetMouseButtonDown(0)) this.Hurt(Vector2.Subtract(cam.ScreenToWorldPoint(Input.mousePosition), cam.transform.position), 10);
 
 
         // Breathe
@@ -201,29 +87,122 @@ class Player extends Entity
             this.hp = Math.min(this.hp + 0.0625 * Time.deltaTime, this.maxHp);
             this.energy = Math.max(this.energy - 0.078125 * Time.deltaTime, 0);
         }
-
-
-        super.Update();
     }
 
-    TP (pos)
+    _OnChangePos ()
     {
-        this.pos = pos.Duplicate(); 
-        this.lastPos = pos.Duplicate(); 
-        this.targetPos = pos.Duplicate(); 
+        World.SetPlayer(this);
     }
 
-    Hurt (dir, dmg)
+    _OnHurt (dir, dmg)
     {
-        this.hp -= dmg;
+        let angle = Math.atan2(dir.y, dir.x);
+        let rotation = null;
+
+        // Right
+        if (Math.InRange(-0.25 * Math.PI, 0.25 * Math.PI, angle, true))
+            rotation = Math.Translate(
+                0.25 * Math.PI, -1,
+                -0.25 * Math.PI, 1,
+                angle
+            );
+        // Top
+        else if (Math.InRange(0.25 * Math.PI, 0.75 * Math.PI, angle, true))
+            rotation = Math.Translate(
+                0.75 * Math.PI, -1,
+                0.25 * Math.PI, 1,
+                angle
+            );
+        // Topleft
+        else if (Math.InRange(0.75 * Math.PI, 1 * Math.PI, angle, true))
+            rotation = Math.Translate(
+                1 * Math.PI, 0,
+                0.75 * Math.PI, 1,
+                angle
+            );
+        else if (rotation == null && angle < 0)
+        {
+            angle = Math.PI + Math.atan2(-dir.y, -dir.x);
+
+            // Bottomleft
+            if (Math.InRange(Math.PI, 1.25 * Math.PI, angle, true))
+                rotation = Math.Translate(
+                    1.25 * Math.PI, -1,
+                    Math.PI, 0,
+                    angle
+                );
+            // Bottom
+            else if (Math.InRange(1.25 * Math.PI, 1.75 * Math.PI, angle, true))
+                rotation = Math.Translate(
+                    1.75 * Math.PI, -1,
+                    1.25 * Math.PI, 1,
+                    angle
+                );
+        }
+        
+        if (rotation == null) rotation = 0;
 
         Cam.instance.Shake(
-            Math.Clamp(0.01 * dmg, 0.125, 0.5),
-            Vector2.Min(
-                Vector2.Scale(new Vector2(0.5, 3), dmg),
-                new Vector2(3, 20)
-            ),
-            Math.min(4 * dmg, 10)
+            1,
+            // Math.Clamp(0.01 * dmg, 0.125, 0.5),
+            Vector2.Scale(dir, dmg),
+            rotation * dmg
+
+            // Math.min(4 * dmg, 10)
+
+            // Math.Clamp(0.01 * dmg, 0.125, 0.5),
+            // Vector2.Min(
+            //     Vector2.Scale(new Vector2(0.5, 3), dmg),
+            //     new Vector2(3, 20)
+            // ),
+            // Math.min(4 * dmg, 10)
         );
+    }
+
+    _ProcessSetMove (dir, variables)
+    {
+        if (dir.Equals(Vector2.up) && this.tiles === 0)
+        {
+            this.targetPos = this.pos.Duplicate();
+            return 1;
+        }
+
+        const nextGroundNode = ChunkLoader.GetNodeByPos(Vector2.Add(variables.get("targetPos"), Vector2.down));
+        if (nextGroundNode == null) return 0;
+        variables.set("nextGroundNode", nextGroundNode);
+    }
+
+    _ProcessBeforeMove (dir, variables)
+    {
+        const nextTile = variables.get("nextTile");
+
+        // Break
+        if (nextTile != null)
+        {
+            const hardness = nextTile.GetCommonData().hardness;
+
+            if (hardness < 0 || this.strength < hardness)
+            {
+                // Collide
+                this.targetPos = this.pos.Duplicate();
+                return 1;
+            }
+
+            this.tiles++;
+            this.energy -= 0.025;
+            variables.get("nextNode").RemoveTile();
+        }
+    }
+
+    _ProcessAfterMove (dir, variables)
+    {
+        // Place
+        if (this._movement.Equals(Vector2.up) && this.tiles > 0)
+        {
+            this.tiles--;
+            this.energy -= 0.025;
+
+            variables.get("nextGroundNode").SetTile(new GameTile("pu:dirt"));
+        }
     }
 }
