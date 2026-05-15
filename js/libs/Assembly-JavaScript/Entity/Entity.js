@@ -2,8 +2,14 @@ class Entity extends GameBehavior
 {
     #falling = false;
     #moveTime = 0;
+    #hurtDuration = 0.2;
+    #hurtTime = 0;
+    #lastDmg = 0;
 
+    _fallHeight = 0;
     _movement = Vector2.zero;
+
+    _sprRenderer = null;
     _fallStart = null;
     
     lerpSpeed = 5;
@@ -15,6 +21,8 @@ class Entity extends GameBehavior
     mass = 1;
 
     pos = Vector2.zero;
+    lastPos = Vector2.zero;
+    targetPos = Vector2.zero;
 
     get moveDelay ()
     {
@@ -28,6 +36,7 @@ class Entity extends GameBehavior
 
     Start ()
     {
+        this._sprRenderer = this.GetComponent(SpriteRenderer);
         this.transform.position = World.grid.CellToWorld(this.pos);
     }
     
@@ -54,7 +63,6 @@ class Entity extends GameBehavior
 
             if (!brokeProcessing)
             {
-                this.ResetMoveTime();
                 this._movement = Vector2.zero;
                 hasMovement = false;
             }
@@ -85,6 +93,19 @@ class Entity extends GameBehavior
         if (this.#falling) pos.y = targetPos.y;
 
         this.transform.position = pos;
+
+        if (this.#hurtTime > 0)
+        {
+            this.#hurtTime -= Time.deltaTime;
+
+            this._sprRenderer.color = Color.Lerp(
+                new Color(1, 0, 0, 1),
+                Color.white,
+                (this.#hurtDuration - this.#hurtTime) / this.#hurtDuration
+            );
+
+            if (this.#hurtTime <= 0) this.#lastDmg = 0;
+        }
     }
 
     _ProcessMovement ()
@@ -111,6 +132,7 @@ class Entity extends GameBehavior
         const processedAfterMove = this._ProcessAfterMove(dir, variables);
         if (processedAfterMove != null) return processedAfterMove === 1;
 
+        this.ResetMoveTime();
         return true;
     }
 
@@ -122,33 +144,75 @@ class Entity extends GameBehavior
 
     _Fall ()
     {
-        let groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.pos, Vector2.down));
+        let groundNode = null;
+        
+        if (this._fallStart != null) groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(
+            new Vector2(
+                this.pos.x,
+                this._fallStart - Math.floor(this._fallHeight)
+            ),
+            Vector2.down
+        ));
+        else groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.pos, Vector2.down));
+
         if (groundNode == null)
         {
             this.#falling = true;
             return;
         }
-        this.#falling = groundNode.GetOwnerOfType(GameTile) == null;
 
+        this.#falling = groundNode.GetOwnerOfType(GameTile) == null;
+        const movement = Time.fixedDeltaTime * this.mass;
+
+        
+        // Fall
         if (this.#falling)
         {
             if (this._fallStart == null) this._fallStart = this.pos.y;
 
-            this.pos.y -= Time.fixedDeltaTime * this.mass;
+            const iterations = Math.ceil(movement);
+            const scaledMovement = movement / iterations;
 
-            groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(this.pos, Vector2.down));
-            if (groundNode == null) return;
-            this.#falling = groundNode.GetOwnerOfType(GameTile) == null;
+            for (let i = 0; i < iterations; i++)
+            {
+                this.pos.y -= scaledMovement;
+                this._fallHeight += scaledMovement;
+
+                groundNode = ChunkLoader.GetNodeByPos(Vector2.Add(
+                    new Vector2(
+                        this.pos.x,
+                        this._fallStart - Math.floor(this._fallHeight)
+                    ),
+                    Vector2.down
+                ));
+                if (groundNode == null) return;
+
+                this.#falling = groundNode.GetOwnerOfType(GameTile) == null;
+                if (!this.#falling) break;
+            }
         }
-
-        if (!this.#falling && this._fallStart != null) // on land
+        
+        if (!this.#falling && this._fallStart != null) // Land
         {
-            this.pos.y = Math.ceil(this.pos.y);
-            this.transform.position = new Vector2(this.transform.position.x, World.grid.CellToWorld(this.pos).y);
-            const fallHeight = this._fallStart - this.pos.y;
-            this._fallStart = null;
+            const realPos = this._fallStart - Math.floor(this._fallHeight);
+            
+            if (this.pos.y > realPos)
+            {
+                this.pos.y -= movement;
+                return;
+            }
 
-            if (fallHeight > 3) this.Hurt(Vector2.down, Math.max((fallHeight - 3) * 2, 0));
+            this.pos.y = realPos;
+            this.transform.position = new Vector2(this.transform.position.x, World.grid.CellToWorld(this.pos).y);
+
+            if (this._fallHeight >= 4) this.Hurt(
+                new Vector2(Math.RandomRanged(-0.25, 0.25), -1),
+                Math.max((this._fallHeight - 3) * 2, 0)
+            );
+
+            this.ResetMoveTime();
+            this._fallStart = null;
+            this._fallHeight = 0;
         }
     }
 
@@ -166,10 +230,28 @@ class Entity extends GameBehavior
 
     Hurt (dir, dmg)
     {
+        if (this.#hurtTime > 0 && dmg <= this.#lastDmg) return;
+        this.#hurtTime = this.#hurtDuration;
+
         dir = dir.normalized;
 
+        const lastDmg = this.#lastDmg;
+        this.#lastDmg = dmg;
+        dmg = dmg - lastDmg;
+
         this.hp -= dmg;
-        this._OnHurt(dir, dmg);
+        this._OnHurt(dir, this.#lastDmg);
+    }
+
+    InducePain (dmg = Math.RandomRanged(this.maxHp))
+    {
+        this.Hurt(
+            new Vector2(
+                Math.RandomRanged(-1, 1),
+                Math.RandomRanged(-1, 1)
+            ),
+            dmg
+        )
     }
 
     Move (dir)

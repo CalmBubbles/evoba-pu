@@ -23,7 +23,7 @@
     ],
     "targetFrameRate": -1,
     "vSyncCount": 0,
-    "runInBackground": false,
+    "runInBackground": true,
     "debugMode": true,
     "time": {
         "maximumDeltaTime": 0.3333333,

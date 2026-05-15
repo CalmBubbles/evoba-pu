@@ -2,7 +2,6 @@ class Cam extends GameBehavior
 {
     static instance = null;
 
-    #lerpSpeed = 5;
     #pos = Vector2.zero;
     #shakeOffset = Vector2.zero;
     #shakes = [];
@@ -20,17 +19,24 @@ class Cam extends GameBehavior
 
     #ProcessShakes ()
     {
-        if (this.#shakes.length === 0) return;
-
+        this.transform.rotation = 0;
         this.#shakeOffset = Vector2.zero;
 
-        let rotation = this.transform.rotation;
+        if (this.#shakes.length === 0) return;
+
+        let rotation = 0;
         let removing = [];
 
         for (let i = 0; i < this.#shakes.length; i++)
         {
             const data = this.#shakes[i];
-            const intensityScale = data.time / data.duration * 0.25;
+
+            // Wiggle freq excluding peak
+            const freq = 1 / Math.ceil(4 * data.duration);
+            const scaledTime = ((data.time - data.duration * (1 + 0.5 * freq - freq)) * Math.PI) / (0.5 * data.duration * freq);
+            let intensityScale = Math.sin(scaledTime) / scaledTime;
+
+            if (Number.isNaN(intensityScale)) intensityScale = 0;
 
             this.#shakeOffset = Vector2.Add(
                 this.#shakeOffset,
@@ -52,11 +58,6 @@ class Cam extends GameBehavior
         for (let i = 0; i < removing.length; i++) this.#shakes.splice(this.#shakes.indexOf(removing[i]), 1);
 
         this.transform.rotation = rotation;
-
-        if (this.#shakes.length > 0) return;
-
-        this.#shakeOffset = Vector2.zero;
-        this.transform.rotation = 0;
     }
     
     LateUpdate ()
@@ -68,7 +69,7 @@ class Cam extends GameBehavior
         this.#pos = Vector2.Lerp(
             this.#pos,
             targetPos,
-            this.#lerpSpeed * Time.deltaTime / Player.instance.moveDelay
+            5 * Time.deltaTime / Player.instance.moveDelay
         );
 
         if (Player.instance.isFalling) this.#pos.y = Math.Lerp(this.#pos.y, targetPos.y, 20 * Time.deltaTime);

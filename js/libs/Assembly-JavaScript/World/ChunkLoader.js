@@ -1,15 +1,45 @@
 class ChunkLoader
 {
+    static #loaded = false;
+    static #loading = 0;
     static #chunks = new Map();
+    static #loadingChunks = new Set();
+
+    static parallelTasks = 2;
+
+    static get isLoaded ()
+    {
+        return this.#loaded;
+    }
+
+    static get runningTasks ()
+    {
+        return this.#loading;
+    }
+
+    static async Set ()
+    {
+
+    }
 
     static async Load (chunk)
     {
+        const chunkID = `${chunk.pos.x}_${chunk.pos.y}`;
+
+        if (this.#chunks.has(chunkID) || this.#loadingChunks.has(chunkID)) return;
+
+        this.#loadingChunks.add(chunkID);
+
+        await CrystalEngine.Wait(() => this.#loading < this.parallelTasks);
+
+        this.#loading++;
+
         const gameObj = await this.Instantiate(
             Resources.FindPrefab("chunk"),
             World.grid.transform,
             null, null, true
         );
-        gameObj.name = `chunk_${chunk.pos.x}_${chunk.pos.y}`
+        gameObj.name = `chunk_${chunkID}`
         chunk.gameObject = gameObj;
 
         const tilemap = gameObj.GetComponent(Tilemap);
@@ -45,8 +75,11 @@ class ChunkLoader
 
             x++;
         }
+
+        this.#loading--;
         
-        this.#chunks.set(`${chunk.pos.x}_${chunk.pos.y}`, chunk);
+        this.#loadingChunks.delete(chunkID);
+        this.#chunks.set(chunkID, chunk);
     }
 
     static WorldToChunkPos (pos)

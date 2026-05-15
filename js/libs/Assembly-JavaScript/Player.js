@@ -6,6 +6,9 @@ class Player extends Entity
     #xTime = 0;
     #yTime = 0;
 
+    #regen = 0.0625;
+    #regenCost = 0.078125;
+
     hp = 10;
     maxHp = 10;
     strength = 2;
@@ -16,15 +19,10 @@ class Player extends Entity
     maxEnergy = 15;
     tiles = 0;
 
-    pos = Vector2.zero;
-    lastPos = Vector2.zero;
-    targetPos = Vector2.zero;
-
     get moveDelay ()
     {
         const rawDelay = (this.#delay + Math.max(0.2 * (3 - this.energy), 0)) / this.speed;
-
-        return Math.max(rawDelay, 1e-100); ;
+        return Math.max(rawDelay, 1e-100);
     }
     
     Awake ()
@@ -48,6 +46,20 @@ class Player extends Entity
         else this.TP(new Vector2(0, 2));
 
         super.Start();
+    }
+
+    FixedUpdate ()
+    {
+        super.FixedUpdate();
+
+        // Regenerate
+        if (this.hp < this.maxHp && this.energy > 0)
+        {
+            this.hp = Math.min(this.hp + this.#regen * Time.fixedDeltaTime, this.maxHp);
+            this.energy -= this.#regenCost * Time.fixedDeltaTime;
+        }
+
+        if (this.energy < 0) this.energy = 0;
     }
 
     Update ()
@@ -74,19 +86,6 @@ class Player extends Entity
         }
 
         this.Move(input);
-
-
-        const cam = Camera.main;
-
-        if (Input.GetMouseButtonDown(0)) this.Hurt(Vector2.Subtract(cam.ScreenToWorldPoint(Input.mousePosition), cam.transform.position), 10);
-
-
-        // Breathe
-        if (this.hp < this.maxHp)
-        {
-            this.hp = Math.min(this.hp + 0.0625 * Time.deltaTime, this.maxHp);
-            this.energy = Math.max(this.energy - 0.078125 * Time.deltaTime, 0);
-        }
     }
 
     _OnChangePos ()
@@ -143,19 +142,16 @@ class Player extends Entity
         if (rotation == null) rotation = 0;
 
         Cam.instance.Shake(
-            // 1,
-            Math.Clamp(0.01 * dmg, 0.125, 0.5),
-            Vector2.Scale(dir, dmg),
-            rotation * dmg
-
-            // Math.min(4 * dmg, 10)
-
-            // Math.Clamp(0.01 * dmg, 0.125, 0.5),
-            // Vector2.Min(
-            //     Vector2.Scale(new Vector2(0.5, 3), dmg),
-            //     new Vector2(3, 20)
-            // ),
-            // Math.min(4 * dmg, 10)
+            Math.Clamp(0.01 * dmg, 0.3, 5),
+            Vector2.Scale(
+                dir,
+                Math.Clamp(
+                    0.01 * dmg,
+                    0.5,
+                    20
+                )
+            ),
+            Math.Clamp(rotation * dmg * 0.1, -15, 15)
         );
     }
 

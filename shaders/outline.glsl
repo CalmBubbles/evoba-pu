@@ -8,6 +8,7 @@
 precision mediump float;
 
 uniform sampler2D uSampler;
+uniform vec4 uTint;
 uniform vec4 uOutlineColor;
 uniform bool uIncludeCorners;
 uniform float uAlphaThreshold;
@@ -23,7 +24,7 @@ void main ()
 
     if (texelColor.a >= uAlphaThreshold)
     {
-        fragColor = texelColor;
+        fragColor = texelColor + uTint;
 
         return;
     }
@@ -40,5 +41,5 @@ void main ()
                         texture(uSampler, vTexturePos + vec2(-oneTexel.x, -oneTexel.y)).a >= uAlphaThreshold
                      ));
 
-    fragColor = isOutline ? uOutlineColor : fragColor;
+    fragColor = (isOutline ? uOutlineColor : fragColor) + uTint;
 }

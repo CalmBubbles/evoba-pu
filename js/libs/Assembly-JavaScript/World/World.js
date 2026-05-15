@@ -158,11 +158,13 @@ class World extends GameBehavior
     Start ()
     {
         Crispixels.effect = true;
-        // FPSMeter.enabled = true;
-        // FPSMeter.detailed = true;
+        FPSMeter.enabled = true;
+        FPSMeter.detailed = true;
         
         World.grid = this.GetComponent(Grid);
         TileBank.LoadTextures();
+
+        ChunkLoader.Set();
     }
 
     #GetChunkData (pos)
@@ -178,15 +180,9 @@ class World extends GameBehavior
         return chunk;
     }
 
-    #LoadChunk (pos)
-    {
-        if (ChunkLoader.GetByPos(pos) == null) ChunkLoader.Load(this.#GetChunkData(pos));
-    }
-
     #UnloadChunk (pos)
     {
         const chunk = ChunkLoader.GetByPos(pos);
-
         if (chunk != null) ChunkLoader.Unload(chunk);
     }
 
@@ -237,20 +233,21 @@ class World extends GameBehavior
                 ChunkLoader.Load(this.#centerChunk);
             }
 
-            this.#LoadChunk(Vector2.Add(chunkPos, Vector2.up));
-            this.#LoadChunk(Vector2.Add(chunkPos, Vector2.left));
-            this.#LoadChunk(Vector2.Add(chunkPos, Vector2.right));
-            this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(-1, 1)));
-            this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(1, 1)));
-            this.#LoadChunk(Vector2.Add(chunkPos, Vector2.down));
-            this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(-1, -1)));
-            this.#LoadChunk(Vector2.Add(chunkPos, new Vector2(1, -1)));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, Vector2.up)));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, Vector2.left)));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, Vector2.right)));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, Vector2.down)));
+
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, new Vector2(-1, 1))));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, new Vector2(1, 1))));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, new Vector2(-1, -1))));
+            ChunkLoader.Load(this.#GetChunkData(Vector2.Add(chunkPos, new Vector2(1, -1))));
         }
     }
 
     LateUpdate ()
     {
-        this.#UpdateChunks();
+        // this.#UpdateChunks();
 
         World.UpdateAutosave();
 
