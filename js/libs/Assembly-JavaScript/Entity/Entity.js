@@ -5,6 +5,7 @@ class Entity extends GameBehavior
     #hurtDuration = 0.2;
     #hurtTime = 0;
     #lastDmg = 0;
+    #lastMoveDelay = 0;
 
     _fallHeight = 0;
     _movement = Vector2.zero;
@@ -29,9 +30,19 @@ class Entity extends GameBehavior
         return 0;
     }
 
+    get currentMoveDelay ()
+    {
+        return this.#lastMoveDelay;
+    }
+
     get isFalling ()
     {
         return this.#falling;
+    }
+
+    get isDead ()
+    {
+        return this.hp <= 0;
     }
 
     Start ()
@@ -87,7 +98,7 @@ class Entity extends GameBehavior
         let pos = Vector2.Lerp(
             this.transform.position,
             targetPos,
-            this.lerpSpeed * Time.deltaTime / this.moveDelay
+            this.lerpSpeed * Time.deltaTime / this.#lastMoveDelay
         );
 
         if (this.#falling) pos.y = targetPos.y;
@@ -97,12 +108,15 @@ class Entity extends GameBehavior
         if (this.#hurtTime > 0)
         {
             this.#hurtTime -= Time.deltaTime;
+            if (this.#hurtTime <= 0) this.#hurtTime = 0;
 
             this._sprRenderer.color = Color.Lerp(
                 new Color(1, 0, 0, 1),
                 Color.white,
                 (this.#hurtDuration - this.#hurtTime) / this.#hurtDuration
             );
+
+            this._OnUpdateHurt(this.#hurtDuration, this.#hurtTime, this.#lastDmg);
 
             if (this.#hurtTime <= 0) this.#lastDmg = 0;
         }
@@ -220,17 +234,24 @@ class Entity extends GameBehavior
 
     _OnHurt (dir, dmg) { }
 
+    _OnUpdateHurt (duration, time, dmg) { }
+
+    _OnDie () { }
+
     TP (pos)
     {
+        this.#lastMoveDelay = this.moveDelay;
+
         this.pos = pos.Duplicate();
-        this.targetPos = pos.Duplicate(); 
+        this.targetPos = pos.Duplicate();
 
         this.transform.position = World.grid.CellToWorld(this.pos);
     }
 
     Hurt (dir, dmg)
     {
-        if (this.#hurtTime > 0 && dmg <= this.#lastDmg) return;
+        if (this.isDead || (this.#hurtTime > 0 && dmg <= this.#lastDmg)) return;
+        
         this.#hurtTime = this.#hurtDuration;
 
         dir = dir.normalized;
@@ -241,6 +262,12 @@ class Entity extends GameBehavior
 
         this.hp -= dmg;
         this._OnHurt(dir, this.#lastDmg);
+
+        if (this.hp <= 0)
+        {
+            if (this !== Player.instance) GameObject.Destroy(this);
+            this._OnDie();
+        }
     }
 
     InducePain (dmg = Math.RandomRanged(this.maxHp))
@@ -260,19 +287,20 @@ class Entity extends GameBehavior
 
         this.transform.position = World.grid.CellToWorld(this.pos);
 
+        this.#lastMoveDelay = this.moveDelay;
         this._movement = dir.Duplicate();
         this.lastPos = this.pos.Duplicate();
         this.targetPos = Vector2.Add(
             this.pos,
             Vector2.Scale(
                 this._movement,
-                Math.max(Math.round(Time.fixedDeltaTime / this.moveDelay), 1)
+                Math.max(Math.round(Time.fixedDeltaTime / this.#lastMoveDelay), 1)
             )
         );
     }
 
     ResetMoveTime ()
     {
-        this.#moveTime = this.moveDelay;
+        this.#moveTime = this.#lastMoveDelay;
     }
 }

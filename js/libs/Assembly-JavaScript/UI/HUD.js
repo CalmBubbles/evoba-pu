@@ -1,5 +1,7 @@
-class GUI extends GameBehavior
+class HUD extends GameBehavior
 {
+    static instance = null;
+
     #tiles = 0;
     #hp = 0;
     #maxHp = 0;
@@ -10,17 +12,27 @@ class GUI extends GameBehavior
     #hpText = null;
     #hpBack = null;
     #hpBar = null;
+    #hpIcon = null;
     #energyText = null;
     #energyBack = null;
     #energyBar = null; // monch... mmmmmmmmmm...
+
+    TintHP (color)
+    {
+        this.#hpBar.tint = color;
+        this.#hpIcon.tint = color;
+    }
     
     Start ()
     {
+        HUD.instance = this;
+
         this.#tilesText = this.transform.Find("tiles/text").GetComponent(Text);
 
         this.#hpText = this.transform.Find("hp/text").GetComponent(Text);
         this.#hpBack = this.transform.Find("hp/back");
-        this.#hpBar = this.transform.Find("hp/bar");
+        this.#hpBar = this.transform.Find("hp/bar").GetComponent(SpriteRenderer);
+        this.#hpIcon = this.transform.Find("hp/icon").GetComponent(SpriteRenderer);
 
         this.#energyText = this.transform.Find("energy/text").GetComponent(Text);
         this.#energyBack = this.transform.Find("energy/back");
@@ -38,10 +50,13 @@ class GUI extends GameBehavior
         if (this.#hp !== Player.instance.hp)
         {
             this.#hp = Player.instance.hp;
-            this.#hpText.text = `${Math.ceil(this.#hp)}/${Math.ceil(this.#maxHp)}`;
-            this.#hpBar.scale = new Vector2(
+
+            const hp = (this.#hp > 0 && this.#hp < 1) ? 1 : Math.round(this.#hp);
+
+            this.#hpText.text = `${hp}/${Math.ceil(this.#maxHp)}`;
+            this.#hpBar.transform.localScale = new Vector2(
                 Math.Clamp(4 * this.#hp, 0, 160),
-                this.#hpBar.scale.y
+                this.#hpBar.transform.localScale.y
             );
         }
 
@@ -49,19 +64,22 @@ class GUI extends GameBehavior
         {
             this.#maxHp = Player.instance.maxHp;
             this.#hpText.text = `${Math.ceil(this.#hp)}/${Math.ceil(this.#maxHp)}`;
-            this.#hpBack.scale = new Vector2(
+            this.#hpBack.localScale = new Vector2(
                 Math.Clamp(4 * this.#maxHp, 0, 160),
-                this.#hpBack.scale.y
+                this.#hpBack.localScale.y
             );
         }
 
         if (this.#energy !== Player.instance.energy)
         {
             this.#energy = Player.instance.energy;
-            this.#energyText.text = `${Math.ceil(this.#energy)}/${Math.ceil(this.#maxEnergy)}`;
-            this.#energyBar.scale = new Vector2(
+
+            const energy = (this.#energy > 0 && this.#energy < 1) ? 1 : Math.round(this.#energy);
+
+            this.#energyText.text = `${energy}/${Math.ceil(this.#maxEnergy)}`;
+            this.#energyBar.localScale = new Vector2(
                 Math.Clamp(4 * this.#energy, 0, 160),
-                this.#energyBar.scale.y
+                this.#energyBar.localScale.y
             );
         }
 
@@ -69,12 +87,10 @@ class GUI extends GameBehavior
         {
             this.#maxEnergy = Player.instance.maxEnergy;
             this.#energyText.text = `${Math.ceil(this.#energy)}/${Math.ceil(this.#maxEnergy)}`;
-            this.#energyBack.scale = new Vector2(
+            this.#energyBack.localScale = new Vector2(
                 Math.Clamp(4 * this.#maxEnergy, 0, 160),
-                this.#energyBack.scale.y
+                this.#energyBack.localScale.y
             );
         }
-
-        GameWindow.SetTitle(Player.instance.pos);
     }
 }

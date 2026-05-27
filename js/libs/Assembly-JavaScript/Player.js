@@ -51,6 +51,8 @@ class Player extends Entity
     FixedUpdate ()
     {
         super.FixedUpdate();
+        
+        if (this.isDead) return;
 
         // Regenerate
         if (this.hp < this.maxHp && this.energy > 0)
@@ -66,11 +68,12 @@ class Player extends Entity
     {
         super.Update();
 
+        if (this.isDead) return;
 
         // Get Input
         const input = new Vector2(
-            +Input.GetKey(KeyCode.ArrowRight) - +Input.GetKey(KeyCode.ArrowLeft),
-            +Input.GetKey(KeyCode.ArrowUp) - +Input.GetKey(KeyCode.ArrowDown)
+            +Input.GetKey(KeyCode.D) - +Input.GetKey(KeyCode.A),
+            +Input.GetKey(KeyCode.W) - +Input.GetKey(KeyCode.S)
         );
 
         if (input.x !== 0) this.#xTime++;
@@ -90,6 +93,7 @@ class Player extends Entity
 
     _OnChangePos ()
     {
+        GameWindow.SetTitle(Player.instance.pos);
         World.SetPlayer(this);
     }
 
@@ -153,6 +157,20 @@ class Player extends Entity
             ),
             Math.Clamp(rotation * dmg * 0.1, -15, 15)
         );
+    }
+
+    _OnUpdateHurt (duration, time)
+    {
+        HUD.instance.TintHP(Color.Lerp(
+            new Color(1, 1, 1, 0),
+            Color.clear,
+            (duration - time) / duration
+        ));
+    }
+    
+    _OnDie ()
+    {
+        DeathScreen.instance.Show();
     }
 
     _ProcessSetMove (dir, variables)

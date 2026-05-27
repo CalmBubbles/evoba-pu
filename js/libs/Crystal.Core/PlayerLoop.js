@@ -66,7 +66,7 @@ class PlayerLoop
             this.#loaded = true;
         }
         
-        if (!Application.isLoaded && !Application.isUnloaded)
+        if (!Application.isLoaded && (this.#quitState === 2 || !Application.isUnloaded))
         {
             this.#focused = Application.isFocused;
 
@@ -139,7 +139,7 @@ class PlayerLoop
         // TimeUpdate
         if (Application.targetFrameRate > 0 && Application.vSyncCount === 0)
         {
-            const slice = (1 / Application.targetFrameRate) - (+!this.#supportsScheduler * 5e-3);
+            const slice = (1 / (Application.targetFrameRate + 1)) - (+!this.#supportsScheduler * 5e-3);
                     
             let accumulator = (1e-3 * performance.now()) - Time.unscaledTime;
         
@@ -244,7 +244,7 @@ class PlayerLoop
 
 
         // PostLateUpdate
-        (() => {
+        (async () => {
             // InputEndFrame
             Input.End();
 
@@ -325,9 +325,8 @@ class PlayerLoop
             // ApplicationQuit
             if (this.#quitState === 1)
             {
-                Application.Unload();
-            
                 this.#quitState = 2;
+                await Application.Unload();
                 window.close();
             
                 return;

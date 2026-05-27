@@ -20,11 +20,11 @@ out vec4 fragColor;
 
 void main ()
 {
-    vec4 texelColor = texture(uSampler, vTexturePos) * vColor;
+    vec4 texelColor = texture(uSampler, vTexturePos);
 
     if (texelColor.a >= uAlphaThreshold)
     {
-        fragColor = texelColor + uTint;
+        fragColor = texelColor * vColor + uTint;
 
         return;
     }
@@ -41,5 +41,5 @@ void main ()
                         texture(uSampler, vTexturePos + vec2(-oneTexel.x, -oneTexel.y)).a >= uAlphaThreshold
                      ));
 
-    fragColor = (isOutline ? uOutlineColor : fragColor) + uTint;
+    fragColor = (isOutline ? (uOutlineColor * vec4(1, 1, 1, vColor.a)) : (texelColor * vColor)) + uTint;
 }

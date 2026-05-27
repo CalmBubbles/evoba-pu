@@ -69,12 +69,14 @@ class Cam extends GameBehavior
         this.#pos = Vector2.Lerp(
             this.#pos,
             targetPos,
-            5 * Time.deltaTime / Player.instance.moveDelay
+            5 * Time.deltaTime / Player.instance.currentMoveDelay
         );
 
         if (Player.instance.isFalling) this.#pos.y = Math.Lerp(this.#pos.y, targetPos.y, 20 * Time.deltaTime);
 
         this.#ProcessShakes();
+
+        this.transform.rotation = 15;
 
         this.transform.position = Vector2.Add(this.#pos, this.#shakeOffset);
     }

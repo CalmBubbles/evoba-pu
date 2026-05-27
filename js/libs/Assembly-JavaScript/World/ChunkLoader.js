@@ -2,6 +2,7 @@ class ChunkLoader
 {
     static #loaded = false;
     static #loading = 0;
+    static #chunkPool = [];
     static #chunks = new Map();
     static #loadingChunks = new Set();
 
@@ -19,7 +20,24 @@ class ChunkLoader
 
     static async Set ()
     {
+        for (let i = 0; i < 9; i++) await this.#PreloadChunk();
 
+        this.#loaded = true;
+    }
+
+    static async #PreloadChunk ()
+    {
+        const gameObj = await this.Instantiate(
+            Resources.FindPrefab("chunk"),
+            World.grid.transform,
+            null, null, true
+        );
+        const data = {
+            gameObject: gameObj,
+            tilemap: gameObj.GetComponent(Tilemap),
+            chunk: null
+        };
+        this.#chunkPool.push(data);
     }
 
     static async Load (chunk)
@@ -30,27 +48,21 @@ class ChunkLoader
 
         this.#loadingChunks.add(chunkID);
 
-        await CrystalEngine.Wait(() => this.#loading < this.parallelTasks);
+        await CrystalEngine.Wait(() => this.#loaded && this.#loading < this.parallelTasks && this.#chunkPool.length > 0);
 
         this.#loading++;
 
-        const gameObj = await this.Instantiate(
-            Resources.FindPrefab("chunk"),
-            World.grid.transform,
-            null, null, true
-        );
-        gameObj.name = `chunk_${chunkID}`
-        chunk.gameObject = gameObj;
-
-        const tilemap = gameObj.GetComponent(Tilemap);
-        chunk.tilemap = tilemap;
+        const data = this.#chunkPool.shift();
+        data.chunk = chunk;
+        chunk.gameObject = data.gameObject;
+        chunk.tilemap = data.tilemap;
 
         let x = -8 + chunk.pos.x * 17;
         let y = 9 + chunk.pos.y * 10;
         
         for (let i = 0; i < chunk.tiles.length; i++)
         {
-            if (chunk.tiles[i].id !== "pu:air") tilemap.AddTile(new Tile(
+            if (chunk.tiles[i].id !== "pu:air") chunk.tilemap.AddTile(new Tile(
                 "tiles",
                 chunk.tiles[i].id,
                 new Vector2(x, y)
@@ -79,7 +91,7 @@ class ChunkLoader
         this.#loading--;
         
         this.#loadingChunks.delete(chunkID);
-        this.#chunks.set(chunkID, chunk);
+        this.#chunks.set(chunkID, data);
     }
 
     static WorldToChunkPos (pos)
@@ -92,7 +104,9 @@ class ChunkLoader
 
     static GetByPos (pos)
     {
-        return this.#chunks.get(`${pos.x}_${pos.y}`);
+        if (!this.#loaded) return;
+
+        return this.#chunks.get(`${pos.x}_${pos.y}`)?.chunk;
     }
 
     static GetNodeByPos (pos)
@@ -102,11 +116,17 @@ class ChunkLoader
 
     static Unload (chunk)
     {
-        chunk.nodes = [];
+        if (!this.#loaded) return;
 
-        GameObject.Destroy(chunk.gameObject);
+        chunk.nodes = [];
         chunk.gameObj = null;
+        chunk.tilemap = null;
+
+        const data = this.#chunks.get(`${chunk.pos.x}_${chunk.pos.y}`);
+        data.chunk = null;
+        data.tilemap.RemoveAllTiles();
 
         this.#chunks.delete(`${chunk.pos.x}_${chunk.pos.y}`);
+        this.#chunkPool.push(data);
     }
 }

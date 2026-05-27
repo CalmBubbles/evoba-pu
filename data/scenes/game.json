@@ -71,9 +71,11 @@
             ]
         },
         {
-            "name": "gui",
+            "name": "hud",
             "id": 3,
-            "parent": 0,
+            "transform": {
+                "rotation": 15
+            },
             "components": [
                 {
                     "type": "SpriteRenderer",
@@ -91,7 +93,7 @@
                     }
                 },
                 {
-                    "type": "GUI"
+                    "type": "HUD"
                 }
             ]
         },
@@ -217,6 +219,10 @@
                 "position": {
                     "x": -0.325,
                     "y": -0.075
+                },
+                "scale": {
+                    "x": 1,
+                    "y": 4
                 }
             },
             "components": [
@@ -441,6 +447,144 @@
                             "name": "tiles"
                         },
                         "sortingLayer": 1
+                    }
+                }
+            ]
+        },
+        {
+            "name": "deathscreen",
+            "id": 17,
+            "parent": 0,
+            "components": [
+                {
+                    "type": "DeathScreen"
+                }
+            ]
+        },
+        {
+            "name": "backdrop",
+            "id": 18,
+            "parent": 17,
+            "transform": {
+                "scale": {
+                    "x": 340,
+                    "y": 200
+                },
+                "position": {
+                    "x": -8.5,
+                    "y": 5
+                }
+            },
+            "components": [
+                {
+                    "type": "SpriteRenderer",
+                    "args": {
+                        "sprite": {
+                            "texture": "pixel"
+                        },
+                        "sortingLayer": 1,
+                        "sortingOrder": 2,
+                        "color": {
+                            "r": 32,
+                            "g": 0,
+                            "b": 0,
+                            "a": 192
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "header",
+            "id": 19,
+            "parent": 17,
+            "transform": {
+                "position": {
+                    "y": 0.5
+                }
+            },
+            "components": [
+                {
+                    "type": "Text",
+                    "args": {
+                        "material": {
+                            "fragmentShader": "pu/Outline",
+                            "properties": [
+                                {
+                                    "name": "uOutlineColor",
+                                    "type": "Vector",
+                                    "value": [ 0, 0, 0, 1 ]
+                                },
+                                {
+                                    "name": "uIncludeCorners",
+                                    "type": "Boolean",
+                                    "value": true
+                                },
+                                {
+                                    "name": "uAlphaThreshold",
+                                    "type": "Float",
+                                    "value": 0.5
+                                }
+                            ]
+                        },
+                        "font": "font",
+                        "text": "RiP",
+                        "overflowWidth": true,
+                        "horizontalAlign": 1,
+                        "verticalAlign": 1,
+                        "height": 2,
+                        "sortingLayer": 1,
+                        "sortingOrder": 3,
+                        "fontSize": 4
+                    }
+                }
+            ]
+        },
+        {
+            "name": "subtext",
+            "id": 20,
+            "parent": 17,
+            "transform": {
+                "position": {
+                    "y": -1
+                }
+            },
+            "components": [
+                {
+                    "type": "Text",
+                    "args": {
+                        "material": {
+                            "fragmentShader": "pu/Outline",
+                            "properties": [
+                                {
+                                    "name": "uOutlineColor",
+                                    "type": "Vector",
+                                    "value": [ 0, 0, 0, 1 ]
+                                },
+                                {
+                                    "name": "uIncludeCorners",
+                                    "type": "Boolean",
+                                    "value": true
+                                },
+                                {
+                                    "name": "uAlphaThreshold",
+                                    "type": "Float",
+                                    "value": 0.5
+                                }
+                            ]
+                        },
+                        "font": "font",
+                        "text": "LMAO skill issue",
+                        "overflowHeight": true,
+                        "horizontalAlign": 1,
+                        "sortingLayer": 1,
+                        "sortingOrder": 3,
+                        "fontSize": 1,
+                        "width": 15,
+                        "pivot": {
+                            "x": 0.5,
+                            "y": 0
+                        }
                     }
                 }
             ]

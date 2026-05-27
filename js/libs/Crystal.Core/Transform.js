@@ -64,22 +64,54 @@ class Transform extends Component
     
     get position ()
     {
-        return Vector2.Add(this.localPosition, this.parent?.position ?? Vector2.zero);
+        if (this.#parent == null) return this.localPosition;
+
+        const rotation = this.#parent.rotation / (180 / Math.PI);
+        return Vector2.Add(
+            this.#parent.position,
+            Vector2.Scale(
+                new Vector2(
+                    this.localPosition.x * Math.cos(rotation) - this.localPosition.y * Math.sin(rotation),
+                    this.localPosition.x * Math.sin(rotation) + this.localPosition.y * Math.cos(rotation)
+                ),
+                this.#parent.lossyScale
+            )
+        );
     }
     
     set position (value)
     {
-        this.localPosition = Vector2.Subtract(value, this.parent?.position ?? Vector2.zero);
+        if (this.#parent == null)
+        {
+            this.localPosition = value;
+            return;
+        }
+
+        const rotatedPos = Vector2.Divide(
+            Vector2.Subtract(value, this.#parent.position),
+            this.#parent.lossyScale
+        );
+        const rotation = -this.#parent.rotation / (180 / Math.PI);
+        this.localPosition = new Vector2(
+            rotatedPos.x * Math.cos(rotation) - rotatedPos.y * Math.sin(rotation),
+            rotatedPos.x * Math.sin(rotation) + rotatedPos.y * Math.cos(rotation)
+        );
     }
     
-    get scale ()
+    get lossyScale ()
     {
-        return Vector2.Scale(this.localScale, this.parent?.scale ?? Vector2.one);
-    }
-    
-    set scale (value)
-    {
-        this.localScale = Vector2.Divide(value, this.parent?.scale ?? Vector2.one);
+        // return this.localScale;
+
+        if (this.#parent == null) return this.localScale;
+
+        const rotation = this.#parent.rotation / (180 / Math.PI);
+        return Vector2.Scale(
+            new Vector2(
+                this.localScale.x * Math.cos(rotation) - this.localScale.y * Math.sin(rotation),
+                this.localScale.x * Math.sin(rotation) + this.localScale.y * Math.cos(rotation)
+            ),
+            this.#parent.lossyScale
+        );
     }
     
     get childCount ()
@@ -124,23 +156,11 @@ class Transform extends Component
         if (this.#parent == null || this.gameObject == null) return;
         
         this.#parent.AttachChild(this, true);
-        
-        const rotation = this.#parent.rotation / (180 / Math.PI);
-        const pos = Vector2.Add(
-            this.#parent.position,
-            Vector2.Scale(
-                new Vector2(
-                    this.localPosition.x * Math.cos(rotation) - this.localPosition.y * Math.sin(rotation),
-                    this.localPosition.x * Math.sin(rotation) + this.localPosition.y * Math.cos(rotation)
-                ),
-                this.#parent.scale
-            )
-        );
 
         this.#lWMat = Matrix3x3.TRS(
-            Vector2.Scale(pos, new Vector2(1, -1)),
+            Vector2.Scale(this.position, new Vector2(1, -1)),
             5.555555555555556e-3 * -this.rotation * Math.PI,
-            this.scale
+            this.lossyScale
         );
         this.#lWMatInv = this.#lWMat.inverse;
 
@@ -149,29 +169,10 @@ class Transform extends Component
     
     Recalc ()
     {
-        let pos = null;
-
-        if (this.#parent != null)
-        {
-            const rotation = this.#parent.rotation / (180 / Math.PI);
-
-            pos = Vector2.Add(
-                this.#parent.position,
-                Vector2.Scale(
-                    new Vector2(
-                        this.localPosition.x * Math.cos(rotation) - this.localPosition.y * Math.sin(rotation),
-                        this.localPosition.x * Math.sin(rotation) + this.localPosition.y * Math.cos(rotation)
-                    ),
-                    this.#parent.scale
-                )
-            );
-        }
-        else pos = this.localPosition;
-
         this.#lWMat = Matrix3x3.TRS(
-            Vector2.Scale(pos, new Vector2(1, -1)),
+            Vector2.Scale(this.position, new Vector2(1, -1)),
             5.555555555555556e-3 * -this.rotation * Math.PI,
-            this.scale
+            this.lossyScale
         );
         this.#lWMatInv = this.#lWMat.inverse;
 

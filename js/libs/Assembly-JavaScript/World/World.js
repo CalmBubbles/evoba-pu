@@ -158,7 +158,7 @@ class World extends GameBehavior
     Start ()
     {
         Crispixels.effect = true;
-        FPSMeter.enabled = true;
+        // FPSMeter.enabled = true;
         FPSMeter.detailed = true;
         
         World.grid = this.GetComponent(Grid);
@@ -196,32 +196,61 @@ class World extends GameBehavior
             if (this.#centerChunk != null)
             {
                 const prevChunkPos = this.#centerChunk.pos;
+                const chunkBounds = new Bounds(chunkPos, new Vector2(2, 2));
 
-                if (prevChunkPos.y > chunkPos.y)
-                {
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, Vector2.up));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(1, 1)));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(-1, 1)));
-                }
-                else if (prevChunkPos.y < chunkPos.y)
-                {
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, Vector2.down));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(-1, -1)));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(1, -1)));
-                }
-                
-                if (prevChunkPos.x < chunkPos.x)
-                {
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, Vector2.left));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(-1, 1)));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(-1, -1)));
-                }
-                else if (prevChunkPos.x > chunkPos.x)
-                {
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, Vector2.right));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(1, 1)));
-                    this.#UnloadChunk(Vector2.Add(prevChunkPos, new Vector2(1, -1)));
-                }
+                const unload = dir => {
+                    const pos = Vector2.Add(prevChunkPos, dir);
+                    if (!chunkBounds.Contains(pos)) this.#UnloadChunk(pos);
+                };
+
+                // #region Unloads lmao
+
+                // #--
+                // ---
+                // ---
+                unload(new Vector2(-1, 1));
+
+                // -#-
+                // ---
+                // ---
+                unload(Vector2.up);
+
+                // --#
+                // ---
+                // ---
+                unload(new Vector2(1, 1));
+
+                // ---
+                // #--
+                // ---
+                unload(Vector2.left);
+
+                // ---
+                // -#-
+                // ---
+                unload(Vector2.zero);
+
+                // ---
+                // --#
+                // ---
+                unload(Vector2.right);
+
+                // ---
+                // ---
+                // #--
+                unload(new Vector2(-1, -1));
+
+                // ---
+                // ---
+                // -#-
+                unload(Vector2.down);
+
+                // ---
+                // ---
+                // --#
+                unload(new Vector2(1, -1));
+
+                //#endregion
             }
 
             const existing = ChunkLoader.GetByPos(chunkPos);
@@ -247,7 +276,7 @@ class World extends GameBehavior
 
     LateUpdate ()
     {
-        // this.#UpdateChunks();
+        this.#UpdateChunks();
 
         World.UpdateAutosave();
 
