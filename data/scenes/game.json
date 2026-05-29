@@ -73,9 +73,7 @@
         {
             "name": "hud",
             "id": 3,
-            "transform": {
-                "rotation": 15
-            },
+            "parent": 0,
             "components": [
                 {
                     "type": "SpriteRenderer",
@@ -219,10 +217,6 @@
                 "position": {
                     "x": -0.325,
                     "y": -0.075
-                },
-                "scale": {
-                    "x": 1,
-                    "y": 4
                 }
             },
             "components": [
@@ -483,7 +477,7 @@
                             "texture": "pixel"
                         },
                         "sortingLayer": 1,
-                        "sortingOrder": 2,
+                        "sortingOrder": 3,
                         "color": {
                             "r": 32,
                             "g": 0,
@@ -534,7 +528,7 @@
                         "verticalAlign": 1,
                         "height": 2,
                         "sortingLayer": 1,
-                        "sortingOrder": 3,
+                        "sortingOrder": 4,
                         "fontSize": 4
                     }
                 }
@@ -578,7 +572,7 @@
                         "overflowHeight": true,
                         "horizontalAlign": 1,
                         "sortingLayer": 1,
-                        "sortingOrder": 3,
+                        "sortingOrder": 4,
                         "fontSize": 1,
                         "width": 15,
                         "pivot": {

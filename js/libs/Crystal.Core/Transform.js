@@ -4,7 +4,9 @@ class Transform extends Component
     #child = [];
     
     #position = Vector2.zero;
+    #globalPosition = Vector2.zero;
     #scale = Vector2.one;
+    #globalScale = Vector2.zero;
     #lWMat = new Matrix3x3();
     #lWMatInv = new Matrix3x3();
     
@@ -64,23 +66,13 @@ class Transform extends Component
     
     get position ()
     {
-        if (this.#parent == null) return this.localPosition;
-
-        const rotation = this.#parent.rotation / (180 / Math.PI);
-        return Vector2.Add(
-            this.#parent.position,
-            Vector2.Scale(
-                new Vector2(
-                    this.localPosition.x * Math.cos(rotation) - this.localPosition.y * Math.sin(rotation),
-                    this.localPosition.x * Math.sin(rotation) + this.localPosition.y * Math.cos(rotation)
-                ),
-                this.#parent.lossyScale
-            )
-        );
+        return this.#globalPosition.Duplicate();
     }
     
     set position (value)
     {
+        if (this.#globalPosition.Equals(value)) return;
+
         if (this.#parent == null)
         {
             this.localPosition = value;
@@ -100,18 +92,7 @@ class Transform extends Component
     
     get lossyScale ()
     {
-        // return this.localScale;
-
-        if (this.#parent == null) return this.localScale;
-
-        const rotation = this.#parent.rotation / (180 / Math.PI);
-        return Vector2.Scale(
-            new Vector2(
-                this.localScale.x * Math.cos(rotation) - this.localScale.y * Math.sin(rotation),
-                this.localScale.x * Math.sin(rotation) + this.localScale.y * Math.cos(rotation)
-            ),
-            this.#parent.lossyScale
-        );
+        return this.#globalScale.Duplicate();
     }
     
     get childCount ()
@@ -150,33 +131,63 @@ class Transform extends Component
         
         this.#BindData();
     }
+
+    #Calc ()
+    {
+        if (this.#parent == null)
+        {
+            this.#globalPosition = this.#position;
+            this.#globalScale = this.#scale;
+        }
+        else
+        {
+            const rotation = this.#parent.rotation / (180 / Math.PI);
+            this.#globalPosition = Vector2.Add(
+                this.#parent.position,
+                Vector2.Scale(
+                    new Vector2(
+                        this.#position.x * Math.cos(rotation) - this.#position.y * Math.sin(rotation),
+                        this.#position.x * Math.sin(rotation) + this.#position.y * Math.cos(rotation)
+                    ),
+                    this.#parent.lossyScale
+                )
+            );
+            this.#globalScale = Vector2.Scale(this.#scale, this.#parent.lossyScale);
+        }
+
+        this.#lWMat = Matrix3x3.TRS(
+            Vector2.Scale(this.#globalPosition, new Vector2(1, -1)),
+            5.555555555555556e-3 * -this.rotation * Math.PI,
+            this.#globalScale
+        );
+        this.#lWMatInv = this.#lWMat.inverse;
+    }
     
     #BindData ()
     {
-        if (this.#parent == null || this.gameObject == null) return;
+        if (this.gameObject == null) return;
+        if (this.#parent == null)
+        {
+            this.#Calc();
+            return;
+        }
         
         this.#parent.AttachChild(this, true);
 
-        this.#lWMat = Matrix3x3.TRS(
-            Vector2.Scale(this.position, new Vector2(1, -1)),
-            5.555555555555556e-3 * -this.rotation * Math.PI,
-            this.lossyScale
-        );
-        this.#lWMatInv = this.#lWMat.inverse;
+        this.#Calc();
 
         for (let i = 0; i < this.childCount; i++) this.GetChild(i).Recalc();
     }
     
     Recalc ()
     {
-        this.#lWMat = Matrix3x3.TRS(
-            Vector2.Scale(this.position, new Vector2(1, -1)),
-            5.555555555555556e-3 * -this.rotation * Math.PI,
-            this.lossyScale
-        );
-        this.#lWMatInv = this.#lWMat.inverse;
+        this.#Calc();
 
-        if (this.gameObject != null) this.GetComponent(Renderer)?.RecalcBounds();
+        if (this.gameObject != null)
+        {
+            this.GetComponent(Renderer)?.RecalcBounds();
+            this.GetComponent(Camera)?.RecalcBounds();
+        }
         
         for (let i = 0; i < this.childCount; i++) this.GetChild(i).Recalc();
     }

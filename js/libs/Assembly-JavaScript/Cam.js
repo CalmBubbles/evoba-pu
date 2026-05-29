@@ -76,8 +76,6 @@ class Cam extends GameBehavior
 
         this.#ProcessShakes();
 
-        this.transform.rotation = 15;
-
         this.transform.position = Vector2.Add(this.#pos, this.#shakeOffset);
     }
 
