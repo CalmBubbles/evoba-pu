@@ -13,7 +13,7 @@ class Player extends Entity
     maxHp = 10;
     strength = 2;
     speed = 1;
-    mass = 30;
+    mass = 4;
 
     energy = 15;
     maxEnergy = 15;

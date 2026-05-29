@@ -10,6 +10,8 @@ class World extends GameBehavior
     static #db = null;
     static #manifestData = null;
 
+    static gravity = 9.8;
+
     static grid = null;
 
     static get saved ()

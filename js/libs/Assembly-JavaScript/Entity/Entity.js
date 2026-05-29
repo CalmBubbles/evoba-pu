@@ -176,7 +176,7 @@ class Entity extends GameBehavior
         }
 
         this.#falling = groundNode.GetOwnerOfType(GameTile) == null;
-        const movement = Time.fixedDeltaTime * this.mass;
+        const movement = Time.fixedDeltaTime * this.mass * World.gravity;
 
         
         // Fall
