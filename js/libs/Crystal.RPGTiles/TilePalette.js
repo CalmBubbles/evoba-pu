@@ -22,12 +22,12 @@ class TilePalette
         this.#loaded = true;
     }
 
-    static Add (data)
+    static async Add (data)
     {
         this.#unloadedPal.set(data.name, item);
     }
 
-    static Remove (name)
+    static async Remove (name)
     {
         this.Unload(name);
         this.#unloadedPal.delete(name);
